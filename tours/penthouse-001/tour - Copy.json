@@ -1,0 +1,45 @@
+﻿{
+  "tourId": "penthouse-001",
+  "title": "Penthouse – South Yarra",
+  "address": "South Yarra, VIC 3141",
+  "price": "From $3.15M",
+  "rooms": "4",
+  "area": "312 sqm",
+  "modelEntryUrl": "/assets/PentHouse/meta.lcc",
+  "rotation": { "rx": -90, "ry": 0, "rz": 0 },
+  "fov": 60,
+  "startMode": "orbit",
+  "defaultPresetId": "living",
+  "cta": { "label": "Contact agent", "url": "tel:+61..." },
+  "cameraPresets": [
+    {
+      "id": "living",
+      "label": "Living",
+      "position": [38, 14, -20],
+      "target": [56, 12, -12],
+      "fov": 58
+    },
+    {
+      "id": "balcony-view",
+      "label": "Balcony",
+      "position": [84, 18, -26],
+      "target": [68, 14, -18],
+      "fov": 62
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "hotspot-balcony",
+      "label": "Balcony",
+      "position": [72, 14, -20],
+      "type": "info",
+      "card": {
+        "eyebrow": "Outdoor Living",
+        "title": "Skyline Balcony",
+        "description": "Panoramic city outlook with sheltered dining and sunset-facing seating.",
+        "ctaLabel": "Request brochure",
+        "ctaUrl": "https://example.com/penthouse-brochure"
+      }
+    }
+  ]
+}

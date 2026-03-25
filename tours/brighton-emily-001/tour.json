@@ -1,0 +1,16 @@
+{
+  "tourId": "brighton-emily-001",
+  "modelId": "brighton-emily",
+  "title": "Brighton Emily",
+  "address": "Brighton, VIC",
+  "price": "Contact agent",
+  "rooms": "4",
+  "area": "320 sqm",
+  "modelEntryUrl": "/assets/models/brighton-emily/meta.lcc",
+  "startMode": "orbit",
+  "defaultPresetId": "",
+  "slug": "brighton-emily",
+  "status": "draft",
+  "cameraPresets": [],
+  "hotspots": []
+}

@@ -1,0 +1,88 @@
+﻿{
+    "generatedAt":  "2026-03-25T21:08:52.3143125+13:00",
+    "sourceRoot":  "c:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\LCC-Web-0.5.5-deploy\\Vios Deploy",
+    "targetRoot":  "c:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app",
+    "packageType":  "lightweight-app-only",
+    "includedPaths":  [
+                          "index.html",
+                          "examples",
+                          "sdk",
+                          "tours",
+                          "assets/ui",
+                          "schema",
+                          "docs",
+                          "README.md",
+                          "range-server.mjs",
+                          "DEPLOY_REPORT.json"
+                      ],
+    "excludedPaths":  [
+                          "assets/PentHouse",
+                          "assets/models",
+                          "assets/**/*.bin",
+                          "assets/**/*.lcc",
+                          ".server*.log",
+                          ".DS_Store"
+                      ],
+    "fileCount":  882,
+    "totalBytes":  39116651,
+    "totalGB":  0.036,
+    "missingRequired":  [
+
+                        ],
+    "missingRequiredCount":  0,
+    "largestFilesMB":  [
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\cesium\\Cesium.js",
+                               "MB":  12.8
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\assets\\ui\\vios-intro.mp4",
+                               "MB":  3.53
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\rhino3dm\\rhino3dm.wasm",
+                               "MB":  2.43
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\three.module.js",
+                               "MB":  1.27
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\draco\\gltf\\draco_encoder.js",
+                               "MB":  0.91
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\draco\\draco_encoder.js",
+                               "MB":  0.89
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\sdk\\lcc-0.5.5.umd.js",
+                               "MB":  0.78
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\sdk\\lcc-0.5.5.js",
+                               "MB":  0.78
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\draco\\draco_decoder.js",
+                               "MB":  0.69
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\ammo.wasm.wasm",
+                               "MB":  0.62
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\draco\\gltf\\draco_decoder.js",
+                               "MB":  0.49
+                           },
+                           {
+                               "Path":  "C:\\Users\\asaad\\OneDrive\\Desktop\\Vios\\VIOS-APP\\LCC-Web-0.5.5-app\\examples\\engine\\three\\jsm\\libs\\basis\\basis_transcoder.wasm",
+                               "MB":  0.48
+                           }
+                       ],
+    "notes":  [
+                  "Generated from full deploy root via copy-only packaging.",
+                  "Heavy model payload intentionally excluded for lightweight distribution.",
+                  "Brighton and PentHouse model binaries are not bundled in this package by design."
+              ]
+}

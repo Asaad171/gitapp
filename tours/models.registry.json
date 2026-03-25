@@ -1,0 +1,16 @@
+{
+  "models": [
+    {
+      "modelId": "penthouse-model",
+      "name": "PentHouse",
+      "modelEntryUrl": "/assets/PentHouse/meta.lcc",
+      "thumbUrl": "/assets/PentHouse/thumb.jpg"
+    },
+    {
+      "modelId": "brighton-emily",
+      "name": "Brighton Emily",
+      "modelEntryUrl": "/assets/models/brighton-emily/meta.lcc",
+      "thumbUrl": "/assets/models/brighton-emily/thumb.jpg"
+    }
+  ]
+}

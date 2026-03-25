@@ -1,0 +1,70 @@
+{
+  "tourId": "penthouse-001",
+  "modelId": "penthouse-model",
+  "slug": "penthouse-001",
+  "status": "published",
+  "title": "Penthouse – South Yarra",
+  "address": "South Yarra, VIC 3141",
+  "price": "From $3.15M",
+  "rooms": "4",
+  "area": "312 sqm",
+  "modelEntryUrl": "/assets/PentHouse/meta.lcc",
+  "rotation": {
+    "rx": -90,
+    "ry": 0,
+    "rz": 0
+  },
+  "fov": 60,
+  "startMode": "orbit",
+  "defaultPresetId": "view-2",
+  "cta": {
+    "label": "Contact agent",
+    "url": "tel:+61..."
+  },
+  "cameraPresets": [
+    {
+      "id": "view-2",
+      "label": "Lounge",
+      "position": [
+        7.498925634917505,
+        0.392735145563515,
+        -3.6437021012683157
+      ],
+      "target": [
+        7.218716118531253,
+        0.5091084165380825,
+        -2.6908433033715617
+      ],
+      "fov": 58
+    }
+  ],
+  "hotspots": [
+    {
+      "id": "hotspot-1",
+      "label": "Hotspot 1",
+      "position": [
+        4.696377218719767,
+        0.2731058965767897,
+        4.2733313060082265
+      ],
+      "type": "info",
+      "card": {
+        "title": "Bar",
+        "description": "Moder"
+      }
+    },
+    {
+      "id": "hotspot-2",
+      "label": "Hotspot 2",
+      "position": [
+        8.415648617197798,
+        -0.033014286089809684,
+        13.353980154404525
+      ],
+      "type": "info"
+    }
+  ],
+  "configVersion": "1.2",
+  "updatedAt": "2026-03-13T09:13:46.049Z",
+  "updatedBy": ""
+}

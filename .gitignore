@@ -1,0 +1,5 @@
+﻿assets/PentHouse/
+assets/**/*.bin
+assets/**/*.lcc
+.server*.log
+.DS_Store

@@ -1,0 +1,4755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>LCC ThreeJS Demo</title>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --vios-dark-950: #1f1b18;
+        --vios-dark-900: #26211d;
+        --vios-dark-850: #322b26;
+        --vios-gold: #d9c5b2;
+        --vios-gold-soft: rgba(217, 197, 178, 0.34);
+        --vios-white-92: rgba(248, 240, 232, 0.92);
+        --vios-white-74: rgba(241, 230, 218, 0.74);
+        --vios-white-56: rgba(232, 220, 206, 0.56);
+        --glass-bg: rgba(31, 27, 24, 0.76);
+        --glass-bg-strong: rgba(31, 27, 24, 0.88);
+        --glass-border: rgba(217, 197, 178, 0.22);
+        --glass-shadow: 0 16px 42px rgba(8, 7, 6, 0.52);
+        --panel-radius: 18px;
+        --ui-sans: "Josefin Sans", "Segoe UI", Arial, sans-serif;
+        --ui-serif: "Josefin Sans", "Segoe UI", Arial, sans-serif;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family: var(--ui-sans);
+        background: radial-gradient(circle at 15% 15%, #312a24, #211c18 62%, #171310 100%);
+        color: var(--vios-white-92);
+    }
+
+    canvas {
+        display: block;
+        touch-action: none;
+    }
+
+    #loadingOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at 22% 16%, rgba(62, 52, 43, 0.82), rgba(25, 21, 18, 0.95));
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #loadingOverlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    #loadingOverlay.intro-active #loadingCard {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #loadingMedia {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        filter: blur(10px) saturate(1.05);
+        transform: scale(1.04);
+        opacity: 0.32;
+        z-index: 0;
+    }
+
+    #loadingMedia::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(145deg, rgba(31, 27, 24, 0.72), rgba(31, 27, 24, 0.92));
+    }
+
+    #introVideo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 0.45s ease;
+    }
+
+    #introVideo.hidden {
+        opacity: 0;
+    }
+
+    #introPlayBtn {
+        position: absolute;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        z-index: 3;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg-strong);
+        color: var(--vios-white-92);
+        padding: 9px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    #loadingCard {
+        position: relative;
+        z-index: 2;
+        width: min(440px, 90vw);
+        padding: 18px 18px 14px;
+        border-radius: 20px;
+        background: var(--glass-bg-strong);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        color: var(--vios-white-92);
+        backdrop-filter: blur(18px) saturate(1.05);
+    }
+
+    #loadingBrand {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(240, 225, 208, 0.9);
+    }
+
+    #loadingTitle {
+        margin-top: 6px;
+        font-size: 22px;
+        font-weight: 500;
+        font-family: var(--ui-serif);
+        letter-spacing: 0.01em;
+    }
+
+    #loadingStatus {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--vios-white-74);
+    }
+
+    #loadingProgressWrap {
+        margin-top: 12px;
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(217, 197, 178, 0.16);
+        overflow: hidden;
+    }
+
+    #loadingProgressBar {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(217, 197, 178, 0.72), rgba(233, 218, 202, 0.95));
+        transition: width 0.12s linear;
+    }
+
+    #loadingPercent {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--vios-white-74);
+    }
+
+    #loadingErrorActions {
+        margin-top: 10px;
+    }
+
+    #loadingErrorActions button {
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg-strong);
+        color: var(--vios-white-92);
+        padding: 7px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    #overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+        color: #f4f4f4;
+    }
+
+    .panel {
+        position: fixed;
+        pointer-events: auto;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--panel-radius);
+        backdrop-filter: blur(18px) saturate(1.05);
+        box-shadow: var(--glass-shadow);
+    }
+
+    #topBar {
+        position: fixed;
+        left: calc(14px + var(--safe-left));
+        right: calc(14px + var(--safe-right));
+        top: calc(12px + var(--safe-top));
+        height: 56px;
+        z-index: 12;
+        pointer-events: none;
+    }
+
+    #chromeTopLeft,
+    #chromeTopRight,
+    #chromeBottomLeft,
+    #chromeBottomRight {
+        z-index: 13;
+    }
+
+    #chromeTopLeft {
+        top: calc(12px + var(--safe-top));
+        left: calc(14px + var(--safe-left));
+        width: min(360px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        padding: 10px 14px 9px;
+        pointer-events: none;
+    }
+
+    #chromeTopRight {
+        top: calc(12px + var(--safe-top));
+        right: calc(14px + var(--safe-right));
+        max-width: calc(100vw - 28px - var(--safe-left) - var(--safe-right));
+        padding: 8px;
+    }
+
+    #chromeBottomLeft {
+        left: calc(14px + var(--safe-left));
+        bottom: calc(16px + var(--safe-bottom));
+        padding: 8px;
+    }
+
+    #chromeBottomRight {
+        right: calc(14px + var(--safe-right));
+        bottom: calc(16px + var(--safe-bottom));
+        max-width: calc(100vw - 28px - var(--safe-left) - var(--safe-right));
+        padding: 8px;
+    }
+
+    #chromeTopLeft,
+    #chromeTopRight,
+    #chromeBottomLeft,
+    #chromeBottomRight,
+    #help {
+        transition: opacity 0.32s ease, filter 0.32s ease;
+    }
+
+    #overlay.viewer-idle #chromeTopLeft,
+    #overlay.viewer-idle #chromeTopRight,
+    #overlay.viewer-idle #chromeBottomLeft,
+    #overlay.viewer-idle #help {
+        opacity: 0.2;
+        filter: saturate(0.8);
+    }
+
+    #overlay.viewer-idle #chromeBottomRight {
+        opacity: 0.62;
+        filter: saturate(0.9);
+    }
+
+    #brand {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        gap: 4px;
+    }
+
+    #propertyMetaRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #brandTitle {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: none;
+        font-style: italic;
+        color: rgba(232, 214, 196, 0.78);
+    }
+
+    #brandSubtitle {
+        margin-top: 2px;
+        font-size: 18px;
+        font-weight: 500;
+        font-family: var(--ui-serif);
+        letter-spacing: 0.01em;
+        color: var(--vios-white-92);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: min(46vw, 360px);
+    }
+
+    #propertyAddress {
+        font-size: 12px;
+        color: rgba(233, 220, 206, 0.72);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #propertyPrice {
+        font-size: 16px;
+        color: rgba(217, 197, 178, 0.96);
+        font-family: var(--ui-serif);
+        letter-spacing: 0.01em;
+    }
+
+    #propertyStats {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .propertyStatChip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 24px;
+        padding: 0 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(217, 197, 178, 0.24);
+        background: rgba(217, 197, 178, 0.08);
+    }
+
+    .propertyStatChipLabel {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(234, 221, 206, 0.58);
+    }
+
+    .propertyStatChipValue {
+        font-size: 11px;
+        color: rgba(247, 239, 231, 0.9);
+    }
+
+    #rotInfo {
+        margin-top: 3px;
+        font-size: 10px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--vios-white-56);
+    }
+
+    #globalActions,
+    #actions,
+    #spatialTools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #globalActions {
+        justify-content: flex-end;
+    }
+
+    #actions {
+        flex-wrap: nowrap;
+    }
+
+    #spatialTools {
+        min-height: 34px;
+    }
+
+    #spatialSlot {
+        min-height: 30px;
+        padding: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px dashed rgba(217, 197, 178, 0.26);
+        color: rgba(229, 212, 193, 0.56);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    #editorRibbonGroup {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding-left: 10px;
+        margin-left: 2px;
+        border-left: 1px solid rgba(217, 197, 178, 0.24);
+    }
+
+    #editorRibbonGroup[hidden] {
+        display: none;
+    }
+
+    #editorRibbonCreate,
+    #editorRibbonUtils,
+    #editorRibbonStatus {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #editorRibbonCreate {
+        padding: 2px;
+        border-radius: 12px;
+        background: rgba(217, 197, 178, 0.14);
+        box-shadow: 0 0 0 1px rgba(217, 197, 178, 0.2) inset;
+    }
+
+    #editorRibbonUtils {
+        padding: 2px;
+        border-radius: 12px;
+        background: rgba(217, 197, 178, 0.06);
+    }
+
+    #editorRibbonStatus {
+        padding-left: 2px;
+    }
+
+    #topBar.edit-mode #globalActions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        row-gap: 6px;
+    }
+
+    #topBar.edit-mode #chromeTopLeft {
+        opacity: 0.88;
+    }
+
+    #globalActions button,
+    #actions button,
+    #spatialTools button,
+    #modeToggle button,
+    #compactMenu button,
+    #settingsBody button,
+    #editorPanel button {
+        height: 34px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(217, 197, 178, 0.1);
+        color: var(--vios-white-92);
+        padding: 0 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button,
+    summary,
+    a {
+        touch-action: manipulation;
+    }
+
+    #globalActions button:hover,
+    #actions button:hover,
+    #spatialTools button:hover,
+    #modeToggle button:hover,
+    #compactMenu button:hover,
+    #settingsBody button:hover,
+    #editorPanel button:hover {
+        background: rgba(217, 197, 178, 0.2);
+    }
+
+    #globalActions button.active,
+    #actions button.active,
+    #modeToggle button.active,
+    #viewsBtn.active,
+    #settingsBtn.active {
+        background: var(--vios-gold-soft);
+        border-color: rgba(217, 197, 178, 0.6);
+        color: #2a231e;
+        box-shadow: 0 0 0 1px rgba(217, 197, 178, 0.26) inset;
+    }
+
+    #modeToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(217, 197, 178, 0.08);
+        border-radius: 999px;
+        padding: 2px;
+    }
+
+    #modeToggle button {
+        height: 30px;
+        min-width: 58px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: transparent;
+        border: none;
+    }
+
+    #ctaBtn {
+        background: linear-gradient(180deg, rgba(224, 205, 186, 0.94), rgba(197, 172, 149, 0.92));
+        border-color: rgba(217, 197, 178, 0.56);
+        color: #241f1b;
+        font-weight: 600;
+    }
+
+    #ctaBtn:hover {
+        transform: translateY(-1px);
+        background: linear-gradient(180deg, rgba(234, 216, 200, 0.98), rgba(210, 188, 167, 0.96));
+    }
+
+    #settingsBtn,
+    #helpBtn,
+    #moreBtn {
+        width: 34px;
+        padding: 0;
+        font-size: 14px;
+        justify-content: center;
+    }
+
+    #moreBtn {
+        display: none;
+    }
+
+    #viewsPanel {
+        right: calc(14px + var(--safe-right));
+        bottom: calc(64px + var(--safe-bottom));
+        width: min(240px, 72vw);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 13;
+    }
+
+    #viewsPanel[hidden] {
+        display: none;
+    }
+
+    #viewsPanel button {
+        border: 1px solid rgba(217, 197, 178, 0.22);
+        background: rgba(217, 197, 178, 0.11);
+        color: var(--vios-white-92);
+        padding: 8px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 12px;
+        text-align: left;
+    }
+
+    #hotspotInfoCard {
+        right: calc(14px + var(--safe-right));
+        bottom: calc(122px + var(--safe-bottom));
+        width: min(320px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        padding: 13px 14px 14px;
+        z-index: 13;
+        background: linear-gradient(162deg, rgba(47, 40, 35, 0.92), rgba(24, 21, 18, 0.94));
+        border: 1px solid rgba(217, 197, 178, 0.28);
+        box-shadow: 0 18px 44px rgba(8, 7, 6, 0.56), inset 0 1px 0 rgba(248, 240, 232, 0.07);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+    }
+
+    #hotspotInfoCard::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        border: 1px solid rgba(248, 240, 232, 0.04);
+    }
+
+    #hotspotInfoCard.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    #hotspotInfoEyebrow {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(235, 223, 211, 0.62);
+    }
+
+    #hotspotInfoTitle {
+        margin-top: 6px;
+        font-size: 19px;
+        font-family: var(--ui-serif);
+        font-weight: 500;
+        color: var(--vios-white-92);
+        line-height: 1.18;
+    }
+
+    #hotspotInfoBody {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.52;
+        color: rgba(238, 227, 215, 0.76);
+    }
+
+    #hotspotInfoCta {
+        margin-top: 12px;
+        min-height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(217, 197, 178, 0.46);
+        background: rgba(217, 197, 178, 0.15);
+        color: var(--vios-white-92);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        padding: 0 14px;
+        cursor: pointer;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    #hotspotInfoCta:hover {
+        background: rgba(217, 197, 178, 0.24);
+        border-color: rgba(217, 197, 178, 0.64);
+        box-shadow: 0 10px 20px rgba(10, 8, 7, 0.32);
+        transform: translateY(-1px);
+    }
+
+    #hotspotInfoCta:active {
+        transform: translateY(0);
+    }
+
+    #hotspotInfoCta:focus-visible {
+        outline: 1px solid rgba(217, 197, 178, 0.8);
+        outline-offset: 2px;
+    }
+
+    #settingsBackdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 20, 17, 0.32);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 11;
+    }
+
+    #settingsBackdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #settingsDrawer {
+        right: calc(14px + var(--safe-right));
+        top: calc(72px + var(--safe-top));
+        width: min(340px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        max-height: calc(100vh - 90px - var(--safe-top) - var(--safe-bottom));
+        padding: 12px;
+        z-index: 12;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        opacity: 0;
+        transform: translateX(24px);
+        pointer-events: none;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    #settingsDrawer.open {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    #settingsHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    #settingsCloseBtn {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 10px;
+    }
+
+    #settingsBody {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow: auto;
+        padding-right: 2px;
+    }
+
+    #homeBtn {
+        justify-content: center;
+        background: var(--vios-gold-soft);
+        border-color: rgba(217, 197, 178, 0.56);
+        color: #2a231e;
+    }
+
+    #speedWrap,
+    #heightWrap,
+    #fovWrap {
+        display: grid;
+        grid-template-columns: 66px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--vios-white-92);
+    }
+
+    #qualityWrap,
+    #autoWrap,
+    #perfWrap {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--vios-white-92);
+    }
+
+    #speedSlider,
+    #heightSlider,
+    #fovSlider {
+        width: 100%;
+    }
+
+    #qualitySelect {
+        width: 128px;
+        height: 32px;
+        background: rgba(31, 27, 24, 0.82);
+        color: var(--vios-white-92);
+        border: none;
+        border-radius: 10px;
+        padding: 3px 8px;
+        font-size: 13px;
+    }
+
+    #autoPerfToggle,
+    #perfModeToggle {
+        accent-color: var(--vios-gold);
+    }
+
+    #fpsMeter {
+        font-size: 12px;
+        color: var(--vios-white-74);
+        margin-top: 2px;
+    }
+
+    .sliderWrap.disabled {
+        opacity: 0.45;
+    }
+
+    #compactMenu {
+        top: calc(72px + var(--safe-top));
+        right: calc(14px + var(--safe-right));
+        width: 160px;
+        padding: 8px;
+        z-index: 13;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    #compactMenu[hidden] {
+        display: none;
+    }
+
+    #editorPanel {
+        left: calc(14px + var(--safe-left));
+        top: calc(72px + var(--safe-top));
+        width: min(360px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        max-height: calc(100vh - 90px - var(--safe-top) - var(--safe-bottom));
+        overflow: hidden;
+        padding: 12px;
+        z-index: 13;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    #editorPanel[hidden] {
+        display: none;
+    }
+
+    #topBar.edit-mode ~ #editorPanel {
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        border-color: rgba(217, 197, 178, 0.28);
+        background: rgba(31, 27, 24, 0.86);
+        box-shadow: 0 16px 34px rgba(11, 9, 7, 0.44);
+    }
+
+    #topBar.edit-mode ~ #editorPanel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 10px;
+        right: 10px;
+        height: 8px;
+        border-radius: 0 0 8px 8px;
+        pointer-events: none;
+        opacity: 0.78;
+        background: linear-gradient(180deg, rgba(217, 197, 178, 0.3), rgba(217, 197, 178, 0));
+    }
+
+    #topBar.edit-mode ~ #editorPanel #editorBody {
+        padding-top: 8px;
+    }
+
+    #editorTitle {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: rgba(229, 212, 193, 0.9);
+        padding-right: 2px;
+    }
+
+    #editorDirty {
+        font-size: 11px;
+        color: #2a231e;
+        background: rgba(217, 197, 178, 0.88);
+        border: 1px solid rgba(217, 197, 178, 0.52);
+        padding: 2px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    #editorRibbonCreate button {
+        height: 30px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    #addHotspotBtn,
+    #saveViewBtn {
+        background: linear-gradient(180deg, rgba(217, 197, 178, 0.38), rgba(186, 161, 137, 0.32));
+        box-shadow: 0 0 0 1px rgba(217, 197, 178, 0.28) inset;
+    }
+
+    #editorBody {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+        padding-right: 3px;
+        padding-bottom: 4px;
+    }
+
+    #editorRibbonUtils #exitEditorBtn,
+    #editorRibbonUtils #undoBtn,
+    #editorRibbonUtils #redoBtn {
+        height: 28px;
+        padding: 0 9px;
+        font-size: 11px;
+    }
+
+    #exitEditorBtn {
+        border: 1px solid rgba(217, 197, 178, 0.24);
+        background: rgba(217, 197, 178, 0.08);
+        color: var(--vios-white-92);
+    }
+
+    #undoBtn,
+    #redoBtn {
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(217, 197, 178, 0.08);
+        color: var(--vios-white-92);
+    }
+
+    #editorRibbonGroup button:disabled,
+    #editorPanel button:disabled {
+        opacity: 0.45;
+        cursor: default;
+    }
+
+    .editorSection {
+        border: 1px solid rgba(217, 197, 178, 0.16);
+        border-radius: 12px;
+        background: rgba(31, 27, 24, 0.44);
+        overflow: hidden;
+    }
+
+    .editorSection--primary {
+        border-color: rgba(217, 197, 178, 0.24);
+        background: rgba(31, 27, 24, 0.52);
+    }
+
+    .editorSection--secondary {
+        border-color: rgba(217, 197, 178, 0.14);
+        background: rgba(31, 27, 24, 0.4);
+    }
+
+    .editorSection summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 10px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.25;
+        user-select: none;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: rgba(229, 219, 201, 0.88);
+    }
+
+    .editorSection summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .editorSectionBody {
+        padding: 0 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #editorExportActions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    #editorExportActions button {
+        flex: 1;
+        min-width: 130px;
+        height: 31px;
+        font-size: 11px;
+    }
+
+    #editorMetaGrid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .editorMetaFieldContent {
+        gap: 8px;
+    }
+
+    .editorMetaContentRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .editorMetaContentRow select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .editorMetaContentRow button {
+        white-space: nowrap;
+    }
+
+    .editorMetaContentRowStack {
+        align-items: stretch;
+    }
+
+    .editorMetaContentRowStack .editorMetaReadonly {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .editorMetaContentRowWrap {
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    .editorMetaContentRowWrap button {
+        flex: 1;
+        min-width: 132px;
+        min-height: 32px;
+    }
+
+    #metaViewerUrl {
+        font-family: var(--ui-sans);
+    }
+
+    #metaContentHint {
+        margin: 0;
+    }
+
+    #metaPublishHint {
+        margin: 0;
+    }
+
+    #editorSectionMetadata .editorSectionBody {
+        max-height: clamp(220px, 42vh, 360px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        padding-right: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(217, 197, 178, 0.46) rgba(217, 197, 178, 0.12);
+    }
+
+    #editorSectionMetadata .editorSectionBody::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #editorSectionMetadata .editorSectionBody::-webkit-scrollbar-track {
+        background: rgba(217, 197, 178, 0.1);
+        border-radius: 999px;
+    }
+
+    #editorSectionMetadata .editorSectionBody::-webkit-scrollbar-thumb {
+        background: rgba(217, 197, 178, 0.44);
+        border-radius: 999px;
+        border: 1px solid rgba(31, 27, 24, 0.52);
+    }
+
+    .editorMetaField {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .editorMetaField label {
+        font-size: 11px;
+        color: rgba(229, 215, 200, 0.82);
+    }
+
+    .editorMetaField input,
+    .editorMetaField textarea,
+    .editorMetaField select {
+        min-height: 32px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(31, 27, 24, 0.72);
+        color: var(--vios-white-92);
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 11.5px;
+        resize: vertical;
+    }
+
+    .editorMetaReadonly {
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: rgba(31, 27, 24, 0.5);
+        border: 1px solid rgba(217, 197, 178, 0.14);
+        color: rgba(239, 228, 214, 0.9);
+        font-size: 11.5px;
+        overflow-wrap: anywhere;
+    }
+
+    #addHotspotBtn.active {
+        background: rgba(217, 197, 178, 0.52);
+        box-shadow: 0 0 0 1px rgba(217, 197, 178, 0.52) inset;
+    }
+
+    #editorSnapWrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    #editorSnapWrap label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: rgba(232, 219, 204, 0.82);
+    }
+
+    #snapYValue {
+        width: 90px;
+        height: 31px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(31, 27, 24, 0.74);
+        color: var(--vios-white-92);
+        border-radius: 8px;
+        padding: 3px 8px;
+        font-size: 11.5px;
+    }
+
+    .editorList {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 210px;
+        overflow: auto;
+        padding-right: 2px;
+    }
+
+    .editorItem {
+        border: 1px solid rgba(217, 197, 178, 0.16);
+        border-radius: 11px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(31, 27, 24, 0.52);
+    }
+
+    .editorItem.selected {
+        border-color: rgba(217, 197, 178, 0.68);
+        box-shadow: 0 0 0 1px rgba(217, 197, 178, 0.26) inset, 0 4px 14px rgba(0, 0, 0, 0.28);
+    }
+
+    .editorItemTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .editorItemTop strong {
+        font-size: 11px;
+        color: rgba(239, 228, 214, 0.92);
+    }
+
+    .editorItemActions {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .editorItemActions button {
+        height: 27px;
+        padding: 0 8px;
+        font-size: 10.5px;
+        border-radius: 8px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(217, 197, 178, 0.08);
+    }
+
+    .editorItem input,
+    .editorItem select {
+        height: 30px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(31, 27, 24, 0.76);
+        color: var(--vios-white-92);
+        border-radius: 8px;
+        padding: 3px 8px;
+        font-size: 11.5px;
+    }
+
+    #editorStatus {
+        font-size: 10.5px;
+        color: rgba(236, 224, 210, 0.8);
+        min-height: 16px;
+        padding: 7px 2px 0;
+        border-top: 1px solid rgba(217, 197, 178, 0.16);
+    }
+
+    #editorValidation {
+        border: 1px solid rgba(217, 197, 178, 0.16);
+        border-radius: 10px;
+        background: rgba(31, 27, 24, 0.42);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    #validationSummary {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: rgba(230, 214, 197, 0.95);
+    }
+
+    #validationSummary.validationSummaryWarn {
+        color: rgba(227, 203, 173, 0.96);
+    }
+
+    #validationSummary.validationSummaryError {
+        color: rgba(241, 190, 166, 0.96);
+    }
+
+    .validationList {
+        margin: 0;
+        padding-left: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 10.5px;
+        line-height: 1.35;
+    }
+
+    .validationList li {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #validationErrors {
+        color: rgba(241, 200, 176, 0.96);
+    }
+
+    #validationWarnings {
+        color: rgba(228, 207, 180, 0.96);
+    }
+
+    .editorHint {
+        font-size: 10.5px;
+        color: rgba(232, 219, 204, 0.72);
+    }
+
+    #selectedHotspotPos {
+        font-size: 10.5px;
+        color: rgba(232, 219, 204, 0.74);
+        min-height: 14px;
+    }
+
+    #help {
+        left: calc(14px + var(--safe-left));
+        bottom: calc(66px + var(--safe-bottom));
+        padding: 8px 12px;
+        font-size: 12px;
+        line-height: 1.35;
+        max-width: min(560px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        pointer-events: none;
+    }
+
+    #help.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 980px) {
+        #topBar {
+            left: calc(8px + var(--safe-left));
+            right: calc(8px + var(--safe-right));
+            top: calc(8px + var(--safe-top));
+            height: 52px;
+        }
+
+        #chromeTopLeft {
+            left: calc(8px + var(--safe-left));
+            top: calc(8px + var(--safe-top));
+            width: min(300px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+            padding: 9px 12px 8px;
+        }
+
+        #chromeTopRight {
+            right: calc(8px + var(--safe-right));
+            top: calc(8px + var(--safe-top));
+            max-width: calc(100vw - 16px - var(--safe-left) - var(--safe-right));
+        }
+
+        #chromeBottomLeft {
+            left: calc(8px + var(--safe-left));
+            bottom: calc(8px + var(--safe-bottom));
+        }
+
+        #chromeBottomRight {
+            right: calc(8px + var(--safe-right));
+            bottom: calc(8px + var(--safe-bottom));
+        }
+
+        #brandSubtitle {
+            max-width: 38vw;
+        }
+
+        #propertyAddress {
+            max-width: 38vw;
+        }
+
+        #fullscreenBtn,
+        #helpBtn {
+            display: none;
+        }
+
+        #spatialSlot {
+            display: none;
+        }
+
+        #moreBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #viewsPanel {
+            right: calc(8px + var(--safe-right));
+            bottom: calc(58px + var(--safe-bottom));
+        }
+
+        #hotspotInfoCard {
+            right: calc(8px + var(--safe-right));
+            bottom: calc(110px + var(--safe-bottom));
+            width: min(300px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #compactMenu,
+        #settingsDrawer {
+            right: calc(8px + var(--safe-right));
+            top: calc(64px + var(--safe-top));
+        }
+
+        #editorPanel {
+            left: calc(8px + var(--safe-left));
+            top: calc(64px + var(--safe-top));
+            width: min(360px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #help {
+            left: calc(8px + var(--safe-left));
+            bottom: calc(54px + var(--safe-bottom));
+            max-width: min(560px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #topBar.edit-mode #globalActions {
+            width: 100%;
+        }
+
+        #topBar.edit-mode #editorRibbonGroup {
+            width: 100%;
+            order: 99;
+            margin-left: 0;
+            padding-left: 0;
+            padding-top: 6px;
+            border-left: none;
+            border-top: 1px solid rgba(217, 197, 178, 0.24);
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (max-width: 1120px) and (min-width: 981px) {
+        #topBar {
+            left: calc(10px + var(--safe-left));
+            right: calc(10px + var(--safe-right));
+            top: calc(10px + var(--safe-top));
+        }
+
+        #chromeTopLeft {
+            left: calc(10px + var(--safe-left));
+            top: calc(10px + var(--safe-top));
+            width: min(320px, calc(100vw - 20px - var(--safe-left) - var(--safe-right)));
+            padding: 9px 12px 8px;
+        }
+
+        #brandTitle {
+            font-size: 9px;
+            letter-spacing: 0.05em;
+        }
+
+        #brandSubtitle {
+            font-size: 16px;
+            max-width: min(34vw, 300px);
+        }
+
+        #propertyAddress {
+            max-width: min(34vw, 300px);
+        }
+
+        #propertyPrice {
+            font-size: 15px;
+        }
+
+        .propertyStatChip {
+            min-height: 22px;
+            padding: 0 8px;
+            gap: 4px;
+        }
+
+        #chromeTopRight {
+            right: calc(10px + var(--safe-right));
+            top: calc(10px + var(--safe-top));
+            padding: 7px;
+        }
+
+        #chromeBottomLeft {
+            left: calc(10px + var(--safe-left));
+            bottom: calc(10px + var(--safe-bottom));
+        }
+
+        #chromeBottomRight {
+            right: calc(10px + var(--safe-right));
+            bottom: calc(10px + var(--safe-bottom));
+        }
+
+        #fullscreenBtn,
+        #helpBtn {
+            display: none;
+        }
+
+        #moreBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #viewsPanel {
+            right: calc(10px + var(--safe-right));
+            bottom: calc(62px + var(--safe-bottom));
+        }
+
+        #compactMenu,
+        #settingsDrawer {
+            right: calc(10px + var(--safe-right));
+            top: calc(66px + var(--safe-top));
+        }
+
+        #hotspotInfoCard {
+            right: calc(10px + var(--safe-right));
+            bottom: calc(112px + var(--safe-bottom));
+            width: min(296px, calc(100vw - 20px - var(--safe-left) - var(--safe-right)));
+            padding: 12px 13px 13px;
+        }
+
+        #hotspotInfoTitle {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 820px) {
+        #brandSubtitle {
+            max-width: 48vw;
+        }
+
+        #propertyAddress {
+            max-width: 48vw;
+            font-size: 11px;
+        }
+
+        #propertyStats {
+            gap: 5px;
+        }
+
+        .propertyStatChipLabel {
+            font-size: 8px;
+            letter-spacing: 0.1em;
+        }
+
+        .propertyStatChipValue {
+            font-size: 10px;
+        }
+
+        #rotInfo {
+            display: none;
+        }
+
+        #hotspotInfoCard {
+            width: min(276px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+            bottom: calc(104px + var(--safe-bottom));
+        }
+
+        #hotspotInfoBody {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }
+    }
+
+    @media (max-width: 680px) {
+        #actions {
+            width: min(320px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            align-items: stretch;
+        }
+
+        #settingsBtn,
+        #moreBtn {
+            width: 32px;
+        }
+
+        #chromeTopLeft {
+            width: min(260px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #chromeBottomRight {
+            width: min(320px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #viewsBtn,
+        #modeToggle,
+        #ctaBtn {
+            width: 100%;
+            min-width: 0;
+        }
+
+        #modeToggle {
+            padding: 2px;
+            justify-content: stretch;
+        }
+
+        #modeToggle #orbitBtn {
+            display: none;
+        }
+
+        #modeToggle #walkBtn {
+            width: 100%;
+            min-width: 0;
+            padding: 0 8px;
+        }
+
+        #hotspotInfoCard {
+            width: min(264px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+            bottom: calc(96px + var(--safe-bottom));
+            padding: 11px 12px 12px;
+        }
+
+        #hotspotInfoBody {
+            display: none;
+        }
+
+        #topBar.edit-mode #editorRibbonStatus #editorTitle {
+            display: none;
+        }
+
+        #topBar.edit-mode #editorRibbonGroup {
+            gap: 6px;
+        }
+    }
+
+    #onboardingModal {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(24, 20, 17, 0.7);
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    #onboardingModal.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    #onboardingCard {
+        width: min(520px, 92vw);
+        border-radius: 20px;
+        background: var(--glass-bg-strong);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(18px) saturate(1.05);
+        box-shadow: var(--glass-shadow);
+        padding: 18px;
+        color: var(--vios-white-92);
+    }
+
+    #onboardingLabel {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(228, 211, 193, 0.9);
+    }
+
+    #onboardingTitle {
+        margin-top: 8px;
+        font-size: 22px;
+        font-weight: 500;
+        font-family: var(--ui-serif);
+    }
+
+    #onboardingBody {
+        margin-top: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--vios-white-74);
+        white-space: pre-line;
+    }
+
+    #onboardingActions {
+        margin-top: 14px;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    #onboardingActions button {
+        border: 1px solid var(--glass-border);
+        background: rgba(217, 197, 178, 0.12);
+        color: var(--vios-white-92);
+        padding: 7px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    #onboardDone {
+        background: linear-gradient(180deg, rgba(224, 205, 186, 0.94), rgba(197, 172, 149, 0.92));
+        border-color: rgba(217, 197, 178, 0.56);
+        color: #241f1b;
+    }
+
+    @keyframes walkPulseAnim {
+        0% {
+            box-shadow: 0 0 0 0 rgba(217, 197, 178, 0.55);
+        }
+        80% {
+            box-shadow: 0 0 0 10px rgba(217, 197, 178, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(217, 197, 178, 0);
+        }
+    }
+
+    @media (pointer: coarse), (hover: none) {
+        #globalActions button,
+        #actions button,
+        #spatialTools button,
+        #modeToggle button,
+        #compactMenu button,
+        #settingsBody button,
+        #editorPanel button,
+        #hotspotInfoCta,
+        #onboardingActions button,
+        #introPlayBtn {
+            min-height: 42px;
+        }
+
+        #settingsBtn,
+        #helpBtn,
+        #moreBtn {
+            width: 42px;
+        }
+
+        #modeToggle {
+            min-height: 42px;
+            padding: 3px;
+        }
+
+        #modeToggle button {
+            min-width: 64px;
+        }
+
+        #settingsCloseBtn {
+            min-width: 38px;
+            min-height: 38px;
+        }
+    }
+
+    #walkBtn.walkPulse {
+        animation: walkPulseAnim 1.3s ease-out infinite;
+    }
+</style>
+
+<body>
+    <div id="loadingOverlay">
+        <div id="loadingMedia"></div>
+        <video id="introVideo" src="/assets/ui/vios-intro.mp4" autoplay muted playsinline preload="auto"></video>
+        <button id="introPlayBtn" type="button" hidden>Tap to start</button>
+        <div id="loadingCard">
+            <div id="loadingBrand">VIOS</div>
+            <div id="loadingTitle">Loading tour...</div>
+            <div id="loadingStatus">Preparing 3D experience...</div>
+            <div id="loadingProgressWrap">
+                <div id="loadingProgressBar"></div>
+            </div>
+            <div id="loadingPercent">0%</div>
+            <div id="loadingErrorActions" hidden>
+                <button id="reloadBtn" type="button">Reload</button>
+                <button id="loadDefaultBtn" type="button" hidden>Load default tour</button>
+            </div>
+        </div>
+    </div>
+    <div id="onboardingModal" class="hidden">
+        <div id="onboardingCard">
+            <div id="onboardingLabel">Quick Tour</div>
+            <div id="onboardingTitle"></div>
+            <div id="onboardingBody"></div>
+            <div id="onboardingActions">
+                <button id="onboardPrev" type="button">Back</button>
+                <button id="onboardNext" type="button">Next</button>
+                <button id="onboardDone" type="button">Got it</button>
+            </div>
+        </div>
+    </div>
+    <div id="overlay">
+        <div id="topBar">
+            <div id="chromeTopLeft" class="panel">
+                <div id="brand">
+                    <div id="propertyMetaRow">
+                        <div id="brandTitle">powered by VIOS</div>
+                    </div>
+                    <div id="brandSubtitle">Tour</div>
+                    <div id="propertyAddress" hidden></div>
+                    <div id="propertyPrice" hidden></div>
+                    <div id="propertyStats" hidden></div>
+                    <div id="rotInfo"></div>
+                </div>
+            </div>
+            <div id="chromeTopRight" class="panel">
+                <div id="globalActions">
+                    <button id="fullscreenBtn" type="button">Fullscreen</button>
+                    <button id="helpBtn" type="button">?</button>
+                    <button id="settingsBtn" type="button" aria-label="Open settings">&#9881;</button>
+                    <button id="moreBtn" type="button" aria-label="More actions">&#8942;</button>
+                    <div id="editorRibbonGroup" hidden>
+                        <div id="editorRibbonCreate">
+                            <button id="addHotspotBtn" type="button">Add Hotspot</button>
+                            <button id="saveViewBtn" type="button">Save View</button>
+                        </div>
+                        <div id="editorRibbonUtils">
+                            <button id="undoBtn" type="button" disabled>Undo</button>
+                            <button id="redoBtn" type="button" disabled>Redo</button>
+                            <button id="exitEditorBtn" type="button">Exit editor</button>
+                        </div>
+                        <div id="editorRibbonStatus">
+                            <span id="editorTitle">Editor</span>
+                            <span id="editorDirty">Saved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="chromeBottomLeft" class="panel">
+                <div id="spatialTools">
+                    <button id="resetBtn" type="button">Reset</button>
+                    <div id="spatialSlot" aria-hidden="true">Spatial tools</div>
+                </div>
+            </div>
+            <div id="chromeBottomRight" class="panel">
+                <div id="actions">
+                    <button id="viewsBtn" type="button" hidden>Views</button>
+                    <div id="modeToggle" role="group" aria-label="Navigation mode">
+                        <button id="orbitBtn" type="button">Orbit</button>
+                        <button id="walkBtn" type="button">Walk</button>
+                    </div>
+                    <button id="ctaBtn" type="button">CTA</button>
+                </div>
+            </div>
+        </div>
+        <div id="settingsBackdrop"></div>
+        <div id="settingsDrawer" class="panel">
+            <div id="settingsHeader">
+                <span>Settings</span>
+                <button id="settingsCloseBtn" type="button" aria-label="Close settings">&times;</button>
+            </div>
+            <div id="settingsBody">
+                <button id="homeBtn" type="button">Home</button>
+                <label id="speedWrap" for="speedSlider">
+                    <span>Speed</span>
+                    <input id="speedSlider" type="range" min="1" max="20" step="0.5" value="2">
+                    <span id="speedValue">2.0</span>
+                </label>
+                <label id="heightWrap" class="sliderWrap" for="heightSlider">
+                    <span>Height</span>
+                    <input id="heightSlider" type="range" min="-200" max="200" step="0.1" value="2">
+                    <span id="heightValue">2.00</span>
+                </label>
+                <label id="fovWrap" class="sliderWrap" for="fovSlider">
+                    <span>FOV</span>
+                    <input id="fovSlider" type="range" min="35" max="90" step="1" value="45">
+                    <span id="fovValue">45</span>
+                </label>
+                <label id="qualityWrap" class="sliderWrap" for="qualitySelect">
+                    <span>Quality</span>
+                    <select id="qualitySelect">
+                        <option value="low">Low</option>
+                        <option value="balanced" selected>Balanced</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+                <label id="autoWrap" class="sliderWrap" for="autoPerfToggle">
+                    <span>Auto</span>
+                    <input id="autoPerfToggle" type="checkbox" checked>
+                </label>
+                <label id="perfWrap" class="sliderWrap" for="perfModeToggle">
+                    <span>Performance</span>
+                    <input id="perfModeToggle" type="checkbox">
+                </label>
+                <span id="fpsMeter">FPS -- | Scale 1.00x</span>
+            </div>
+        </div>
+
+        <div id="compactMenu" class="panel" hidden>
+            <button id="moreResetBtn" type="button">Reset</button>
+            <button id="moreFullscreenBtn" type="button">Fullscreen</button>
+            <button id="moreHomeBtn" type="button">Home</button>
+            <button id="moreHelpBtn" type="button">Help</button>
+        </div>
+
+        <div id="viewsPanel" class="panel" hidden></div>
+        <div id="hotspotInfoCard" class="panel" aria-live="polite" aria-atomic="true">
+            <div id="hotspotInfoEyebrow"></div>
+            <div id="hotspotInfoTitle"></div>
+            <div id="hotspotInfoBody" hidden></div>
+            <button id="hotspotInfoCta" type="button" hidden></button>
+        </div>
+        <div id="editorPanel" class="panel" hidden>
+            <div id="editorBody">
+                <details id="editorSectionHotspots" class="editorSection editorSection--primary" open>
+                    <summary>Hotspots</summary>
+                    <div class="editorSectionBody">
+                        <div id="editorSnapWrap">
+                            <label>
+                                <input id="snapYToggle" type="checkbox">
+                                Snap to ground (Y)
+                            </label>
+                            <input id="snapYValue" type="number" step="0.1" value="0">
+                        </div>
+                        <div id="hotspotEditorHint" class="editorHint">Select a hotspot to edit</div>
+                        <div id="editorHotspotList" class="editorList"></div>
+                        <div id="selectedHotspotPos">Selected XYZ: --</div>
+                    </div>
+                </details>
+
+                <details id="editorSectionPresets" class="editorSection editorSection--primary">
+                    <summary>Camera Presets</summary>
+                    <div class="editorSectionBody">
+                        <div id="presetEditorHint" class="editorHint">Select a view to rename or set default</div>
+                        <div id="editorPresetList" class="editorList"></div>
+                    </div>
+                </details>
+
+                <details id="editorSectionExport" class="editorSection editorSection--secondary">
+                    <summary>Export</summary>
+                    <div class="editorSectionBody">
+                        <div id="editorExportActions">
+                            <button id="copyConfigBtn" type="button">Copy Config JSON</button>
+                            <button id="downloadConfigBtn" type="button">Download Config</button>
+                        </div>
+                    </div>
+                </details>
+
+                <details id="editorSectionMetadata" class="editorSection editorSection--secondary">
+                    <summary>Metadata</summary>
+                    <div class="editorSectionBody">
+                        <div id="editorMetaGrid">
+                            <div class="editorMetaField editorMetaFieldContent">
+                                <label>Content</label>
+                                <div class="editorMetaContentRow">
+                                    <select id="metaOpenTourSelect" aria-label="Open existing tour">
+                                        <option value="">Loading tours...</option>
+                                    </select>
+                                    <button id="metaOpenTourBtn" type="button" disabled>Open tour</button>
+                                </div>
+                                <div class="editorMetaContentRow">
+                                    <select id="metaNewModelSelect" aria-label="Create new tour from model">
+                                        <option value="">Loading models...</option>
+                                    </select>
+                                    <button id="metaCreateTourBtn" type="button" disabled>New from model</button>
+                                </div>
+                                <div id="metaContentHint" class="editorHint">Loading content registry...</div>
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaTourStatus">Tour status</label>
+                                <select id="metaTourStatus">
+                                    <option value="draft">Draft</option>
+                                    <option value="published">Published</option>
+                                </select>
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaTourSlug">Tour slug</label>
+                                <input id="metaTourSlug" type="text" placeholder="tour-slug">
+                            </div>
+                            <div class="editorMetaField">
+                                <label>Viewer URL</label>
+                                <div class="editorMetaContentRow editorMetaContentRowStack">
+                                    <div id="metaViewerUrl" class="editorMetaReadonly">Unavailable</div>
+                                    <button id="metaCopyViewerUrlBtn" type="button">Copy URL</button>
+                                </div>
+                            </div>
+                            <div class="editorMetaField editorMetaFieldContent">
+                                <label>Publish prep</label>
+                                <div class="editorMetaContentRow editorMetaContentRowWrap">
+                                    <button id="metaPublishBtn" type="button">Publish prep</button>
+                                    <button id="metaCopyRegistryBtn" type="button" disabled>Copy registry JSON</button>
+                                    <button id="metaDownloadRegistryBtn" type="button" disabled>Download registry JSON</button>
+                                    <button id="metaDownloadPublishBundleBtn" type="button">Download publish bundle</button>
+                                </div>
+                                <div id="metaPublishHint" class="editorHint">Publish-ready artifacts stay file-based in this pass.</div>
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaUpdatedBy">Updated by</label>
+                                <input id="metaUpdatedBy" type="text" placeholder="Your name">
+                            </div>
+                            <div class="editorMetaField">
+                                <label>Version</label>
+                                <div id="metaConfigVersion" class="editorMetaReadonly">1.0</div>
+                            </div>
+                            <div class="editorMetaField">
+                                <label>Last updated</label>
+                                <div id="metaUpdatedAt" class="editorMetaReadonly">Not exported yet</div>
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaChangeSummary">Change summary</label>
+                                <textarea id="metaChangeSummary" rows="2" placeholder="Optional note for this export"></textarea>
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaPropertyTitle">Property headline</label>
+                                <input id="metaPropertyTitle" type="text" placeholder="Headline">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaPropertyAddress">Property address</label>
+                                <input id="metaPropertyAddress" type="text" placeholder="Address">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaPropertyPrice">Property price</label>
+                                <input id="metaPropertyPrice" type="text" placeholder="Price">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaPropertyRooms">Property rooms</label>
+                                <input id="metaPropertyRooms" type="text" placeholder="Rooms">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaPropertyArea">Property area</label>
+                                <input id="metaPropertyArea" type="text" placeholder="Area">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaRotationRx">Rotation X (deg)</label>
+                                <input id="metaRotationRx" type="number" step="0.1" placeholder="0">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaRotationRy">Rotation Y (deg)</label>
+                                <input id="metaRotationRy" type="number" step="0.1" placeholder="0">
+                            </div>
+                            <div class="editorMetaField">
+                                <label for="metaRotationRz">Rotation Z (deg)</label>
+                                <input id="metaRotationRz" type="number" step="0.1" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <details id="editorSectionValidation" class="editorSection editorSection--secondary">
+                    <summary>Validation</summary>
+                    <div class="editorSectionBody">
+                        <div id="editorValidation">
+                            <div id="validationSummary" class="editorHint">All good</div>
+                            <ul id="validationErrors" class="validationList" hidden></ul>
+                            <ul id="validationWarnings" class="validationList" hidden></ul>
+                        </div>
+                    </div>
+                </details>
+
+                <div id="editorStatus"></div>
+            </div>
+        </div>
+        <div id="help" class="panel"></div>
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./engine/three/three.module.js",
+                "three/addons/": "./engine/three/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        import { strToU8, zipSync } from 'three/addons/libs/fflate.module.js';
+        import { LCCRender } from '../sdk/lcc-0.5.5.js';
+        import {
+            DEFAULT_MODEL_ENTRY_URL,
+            DEFAULT_FOV,
+            buildToursRegistryPayload,
+            buildViewerUrl,
+            createDefaultTourConfig,
+            isNonEmptyString,
+            isValidTourSlug,
+            loadContentRegistries,
+            loadTourConfigFromLocation,
+            normalizeTourSlug,
+            normalizeTourStatus,
+            normalizeRuntimeTourConfig,
+            parseNum,
+            resolveStartupPlan
+        } from './app/schema/tour-config-runtime.js';
+        import { createAnalyticsClient } from './app/analytics/analytics-client.js';
+        import {
+            fitCameraToBoundsState,
+            animateCameraToPreset,
+            applyStartupViewOnceState
+        } from './app/engine/camera-startup.js';
+        import { createHotspotEngine } from './app/engine/hotspots-engine.js';
+        import { createViewerEngine } from './app/engine/viewer-engine.js';
+        import { createViewerStore } from './app/state/viewer-store.js';
+        import { createLoadingUi } from './app/ui/loading-ui.js';
+        import { createOnboardingUi } from './app/ui/onboarding-ui.js';
+        import { createEditorUi } from './app/ui/editor-ui.js';
+        import { createUiController } from './app/ui/ui-controller.js';
+
+        (async () => {
+        const ONBOARDED_KEY = 'vios_onboarded_v1';
+        const QUALITY_CAPS = { low: 1.0, balanced: 1.25, high: 2.0 };
+        const IDLE_DELAY_MS = 8000;
+        const IDLE_POINTER_MOVE_THROTTLE_MS = 180;
+        const IDLE_INTERACTION_SUPPRESS_MS = 1400;
+
+        const overlay = document.getElementById('overlay');
+        const rotInfo = document.getElementById('rotInfo');
+        const orbitBtn = document.getElementById('orbitBtn');
+        const walkBtn = document.getElementById('walkBtn');
+        const homeBtn = document.getElementById('homeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const viewsBtn = document.getElementById('viewsBtn');
+        const viewsPanel = document.getElementById('viewsPanel');
+        const topBar = document.getElementById('topBar');
+        const chromeTopLeft = document.getElementById('chromeTopLeft');
+        const chromeTopRight = document.getElementById('chromeTopRight');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+        const settingsDrawer = document.getElementById('settingsDrawer');
+        const settingsBackdrop = document.getElementById('settingsBackdrop');
+        const moreBtn = document.getElementById('moreBtn');
+        const compactMenu = document.getElementById('compactMenu');
+        const moreResetBtn = document.getElementById('moreResetBtn');
+        const moreFullscreenBtn = document.getElementById('moreFullscreenBtn');
+        const moreHomeBtn = document.getElementById('moreHomeBtn');
+        const moreHelpBtn = document.getElementById('moreHelpBtn');
+        const editorPanel = document.getElementById('editorPanel');
+        const editorRibbonGroup = document.getElementById('editorRibbonGroup');
+        const addHotspotBtn = document.getElementById('addHotspotBtn');
+        const saveViewBtn = document.getElementById('saveViewBtn');
+        const copyConfigBtn = document.getElementById('copyConfigBtn');
+        const downloadConfigBtn = document.getElementById('downloadConfigBtn');
+        const metaUpdatedBy = document.getElementById('metaUpdatedBy');
+        const metaConfigVersion = document.getElementById('metaConfigVersion');
+        const metaUpdatedAt = document.getElementById('metaUpdatedAt');
+        const metaChangeSummary = document.getElementById('metaChangeSummary');
+        const metaPropertyTitle = document.getElementById('metaPropertyTitle');
+        const metaPropertyAddress = document.getElementById('metaPropertyAddress');
+        const metaPropertyPrice = document.getElementById('metaPropertyPrice');
+        const metaPropertyRooms = document.getElementById('metaPropertyRooms');
+        const metaPropertyArea = document.getElementById('metaPropertyArea');
+        const metaRotationRx = document.getElementById('metaRotationRx');
+        const metaRotationRy = document.getElementById('metaRotationRy');
+        const metaRotationRz = document.getElementById('metaRotationRz');
+        const metaOpenTourSelect = document.getElementById('metaOpenTourSelect');
+        const metaOpenTourBtn = document.getElementById('metaOpenTourBtn');
+        const metaNewModelSelect = document.getElementById('metaNewModelSelect');
+        const metaCreateTourBtn = document.getElementById('metaCreateTourBtn');
+        const metaContentHint = document.getElementById('metaContentHint');
+        const metaTourStatus = document.getElementById('metaTourStatus');
+        const metaTourSlug = document.getElementById('metaTourSlug');
+        const metaViewerUrl = document.getElementById('metaViewerUrl');
+        const metaCopyViewerUrlBtn = document.getElementById('metaCopyViewerUrlBtn');
+        const metaPublishBtn = document.getElementById('metaPublishBtn');
+        const metaCopyRegistryBtn = document.getElementById('metaCopyRegistryBtn');
+        const metaDownloadRegistryBtn = document.getElementById('metaDownloadRegistryBtn');
+        const metaDownloadPublishBundleBtn = document.getElementById('metaDownloadPublishBundleBtn');
+        const metaPublishHint = document.getElementById('metaPublishHint');
+        const validationSummary = document.getElementById('validationSummary');
+        const validationErrors = document.getElementById('validationErrors');
+        const validationWarnings = document.getElementById('validationWarnings');
+        const snapYToggle = document.getElementById('snapYToggle');
+        const snapYValue = document.getElementById('snapYValue');
+        const editorHotspotList = document.getElementById('editorHotspotList');
+        const editorPresetList = document.getElementById('editorPresetList');
+        const hotspotEditorHint = document.getElementById('hotspotEditorHint');
+        const presetEditorHint = document.getElementById('presetEditorHint');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const editorDirty = document.getElementById('editorDirty');
+        const editorStatus = document.getElementById('editorStatus');
+        const selectedHotspotPos = document.getElementById('selectedHotspotPos');
+        const exitEditorBtn = document.getElementById('exitEditorBtn');
+        const editorSectionHotspots = document.getElementById('editorSectionHotspots');
+        const editorSectionPresets = document.getElementById('editorSectionPresets');
+        const editorSectionExport = document.getElementById('editorSectionExport');
+        const editorSectionMetadata = document.getElementById('editorSectionMetadata');
+        const editorSectionValidation = document.getElementById('editorSectionValidation');
+        const helpBtn = document.getElementById('helpBtn');
+        const ctaBtn = document.getElementById('ctaBtn');
+        const helpEl = document.getElementById('help');
+        const brandSubtitle = document.getElementById('brandSubtitle');
+        const propertyAddress = document.getElementById('propertyAddress');
+        const propertyPrice = document.getElementById('propertyPrice');
+        const propertyStats = document.getElementById('propertyStats');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const heightWrap = document.getElementById('heightWrap');
+        const heightSlider = document.getElementById('heightSlider');
+        const heightValue = document.getElementById('heightValue');
+        const fovSlider = document.getElementById('fovSlider');
+        const fovValue = document.getElementById('fovValue');
+        const qualitySelect = document.getElementById('qualitySelect');
+        const autoPerfToggle = document.getElementById('autoPerfToggle');
+        const perfModeToggle = document.getElementById('perfModeToggle');
+        const fpsMeter = document.getElementById('fpsMeter');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMedia = document.getElementById('loadingMedia');
+        const introVideo = document.getElementById('introVideo');
+        const introPlayBtn = document.getElementById('introPlayBtn');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const loadingProgressBar = document.getElementById('loadingProgressBar');
+        const loadingPercent = document.getElementById('loadingPercent');
+        const loadingErrorActions = document.getElementById('loadingErrorActions');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+        const hotspotInfoCard = document.getElementById('hotspotInfoCard');
+        const hotspotInfoEyebrow = document.getElementById('hotspotInfoEyebrow');
+        const hotspotInfoTitle = document.getElementById('hotspotInfoTitle');
+        const hotspotInfoBody = document.getElementById('hotspotInfoBody');
+        const hotspotInfoCta = document.getElementById('hotspotInfoCta');
+        const onboardingModal = document.getElementById('onboardingModal');
+        const onboardingTitle = document.getElementById('onboardingTitle');
+        const onboardingBody = document.getElementById('onboardingBody');
+        const onboardPrev = document.getElementById('onboardPrev');
+        const onboardNext = document.getElementById('onboardNext');
+        const onboardDone = document.getElementById('onboardDone');
+        const viewerStore = createViewerStore({
+            settingsOpen: false,
+            compactMenuOpen: false,
+            viewsOpen: false,
+            onboardingOpen: false,
+            onboardingStepIndex: 0,
+            editorDirty: false,
+            editorStatus: '',
+            selectedHotspotId: '',
+            selectedPresetId: '',
+            hotspotPlacementMode: false,
+            loadingMaxPercent: 0,
+            loadingOverlayHidden: false,
+            introHidden: false,
+            mode: 'orbit'
+        });
+
+        const loadDefaultTour = () => {
+            const next = new URL(window.location.href);
+            next.searchParams.delete('tour');
+            window.location.href = `${next.pathname}${next.search}${next.hash}`;
+        };
+        const exitEditor = () => {
+            const next = new URL(window.location.href);
+            next.searchParams.delete('edit');
+            window.location.href = `${next.pathname}${next.search}${next.hash}`;
+        };
+        const uiController = createUiController({
+            elements: {
+                settingsDrawer,
+                settingsBackdrop,
+                settingsBtn,
+                settingsCloseBtn,
+                compactMenu,
+                moreBtn,
+                viewsPanel,
+                viewsBtn,
+                orbitBtn,
+                walkBtn,
+                heightWrap,
+                heightSlider,
+                heightValue
+            },
+            store: viewerStore
+        });
+        const setSettingsOpen = (open) => {
+            settingsOpen = !!open;
+            uiController.setSettingsOpen(settingsOpen);
+            compactMenuOpen = viewerStore.getState().compactMenuOpen;
+            registerViewerActivity({
+                suppressMs: settingsOpen ? IDLE_INTERACTION_SUPPRESS_MS : 0
+            });
+        };
+        const setCompactMenuOpen = (open) => {
+            compactMenuOpen = !!open;
+            uiController.setCompactMenuOpen(compactMenuOpen);
+            registerViewerActivity({
+                suppressMs: compactMenuOpen ? IDLE_INTERACTION_SUPPRESS_MS : 0
+            });
+        };
+        const setViewsOpen = (open) => {
+            uiController.setViewsOpen(!!open);
+            registerViewerActivity({
+                suppressMs: open ? IDLE_INTERACTION_SUPPRESS_MS : 0
+            });
+        };
+        const loadingUi = createLoadingUi({
+            elements: {
+                loadingOverlay,
+                loadingTitle,
+                loadingStatus,
+                loadingProgressBar,
+                loadingPercent,
+                loadingErrorActions,
+                loadDefaultBtn,
+                reloadBtn,
+                introVideo,
+                introPlayBtn
+            },
+            store: viewerStore,
+            onReload: () => location.reload(),
+            onLoadDefault: loadDefaultTour,
+            onConfigError: (detailMessage) => console.error(`Tour config error: ${detailMessage}`)
+        });
+        const showTourConfigError = (fetchUrl, detailMessage) => {
+            loadingUi.showTourConfigError(fetchUrl, detailMessage);
+        };
+
+        const bootstrapSearchParams = new URLSearchParams(location.search || '');
+        const wantsDraftFromModel = bootstrapSearchParams.get('edit') === '1'
+            && bootstrapSearchParams.get('new') === '1'
+            && !bootstrapSearchParams.get('tour');
+        const requestedDraftModelId = (bootstrapSearchParams.get('model') || '').trim();
+        const registryResult = await loadContentRegistries({
+            fetchFn: window.fetch.bind(window)
+        });
+        const modelRegistry = registryResult.models;
+        const tourRegistry = registryResult.tours;
+        const registryLoadErrors = registryResult.errors;
+
+        const buildDraftTourId = (modelLabel) => {
+            const base = String(modelLabel || 'tour')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .slice(0, 32) || 'tour';
+            const stamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+            return `draft-${base}-${stamp}`;
+        };
+
+        const selectedDraftModel = wantsDraftFromModel
+            ? (modelRegistry.find((entry) => entry.modelId === requestedDraftModelId) || null)
+            : null;
+        const registryDefaultModel = modelRegistry[0] || null;
+
+        const createDraftTourConfigFromModel = (modelEntry) => {
+            const modelName = modelEntry?.name || modelEntry?.modelId || 'Model';
+            return {
+                ...createDefaultTourConfig({
+                    defaultModelEntryUrl: modelEntry.modelEntryUrl,
+                    defaultModelId: modelEntry.modelId,
+                    defaultRotation: modelEntry?.rotation || null,
+                    defaultFov: DEFAULT_FOV,
+                    locationOrigin: location.origin
+                }),
+                tourId: buildDraftTourId(modelEntry.modelId || modelName),
+                title: `New Tour - ${modelName}`,
+                modelId: modelEntry.modelId
+            };
+        };
+
+        const defaultTourConfig = selectedDraftModel
+            ? createDraftTourConfigFromModel(selectedDraftModel)
+            : createDefaultTourConfig({
+                defaultModelEntryUrl: registryDefaultModel?.modelEntryUrl || DEFAULT_MODEL_ENTRY_URL,
+                defaultModelId: registryDefaultModel?.modelId || '',
+                defaultRotation: registryDefaultModel?.rotation || null,
+                defaultTitle: 'Loading tour...',
+                defaultFov: DEFAULT_FOV,
+                locationOrigin: location.origin
+            });
+        const loadResult = await loadTourConfigFromLocation({
+            search: location.search,
+            fetchFn: window.fetch.bind(window),
+            defaultTourConfig,
+            onConfigFetchError: (fetchUrl, detailMessage) => showTourConfigError(fetchUrl, detailMessage)
+        });
+        if (!loadResult.ok) return;
+
+        const {
+            tourConfig,
+            introEnabled,
+            editEnabled,
+            debugEnabled
+        } = loadResult;
+        const startupRegistryTourEntry = tourRegistry.find((entry) => entry.tourId === (tourConfig.tourId || '')) || null;
+        const startupModelId = isNonEmptyString(tourConfig.modelId)
+            ? tourConfig.modelId.trim()
+            : (isNonEmptyString(startupRegistryTourEntry?.modelId)
+                ? startupRegistryTourEntry.modelId
+                : (selectedDraftModel?.modelId || ''));
+        const startupModelEntry = startupModelId
+            ? (modelRegistry.find((entry) => entry.modelId === startupModelId) || null)
+            : null;
+        const normalizedConfig = normalizeRuntimeTourConfig({
+            tourConfig,
+            search: location.search,
+            locationOrigin: location.origin,
+            defaultFov: DEFAULT_FOV,
+            modelDefaultRotation: startupModelEntry?.rotation || null
+        });
+
+        const {
+            MODEL_ENTRY_URL,
+            MODEL_ENTRY_ABS_URL,
+            THUMB_URL,
+            TOUR_TITLE,
+            rotationDeg,
+            queryFov,
+            initialFov,
+            startModeConfig,
+            ctaLabel,
+            ctaUrl,
+            propertyCard,
+            cameraPresets,
+            hotspotConfigs,
+            defaultPresetId: normalizedDefaultPresetId,
+            startParamRaw,
+            hasUrlViewOverrides,
+            requestedStartPresetId,
+            defaultStartPresetId,
+            modelId: normalizedModelId,
+            slug: normalizedTourSlug,
+            status: normalizedTourStatusValue
+        } = normalizedConfig;
+
+        if (!MODEL_ENTRY_ABS_URL) {
+            showTourConfigError(`tour config modelEntryUrl (${tourConfig.modelEntryUrl})`, 'Invalid modelEntryUrl');
+            return;
+        }
+
+        const sourceTourConfig = JSON.parse(JSON.stringify(tourConfig));
+        const activeTourRegistryEntry = tourRegistry.find((entry) => entry.tourId === (tourConfig.tourId || '')) || null;
+        const resolvedModelId = isNonEmptyString(normalizedModelId)
+            ? normalizedModelId
+            : (isNonEmptyString(activeTourRegistryEntry?.modelId)
+                ? activeTourRegistryEntry.modelId
+                : (selectedDraftModel?.modelId || ''));
+        const initialTourSlug = normalizeTourSlug(sourceTourConfig.slug, { slugify: false })
+            || normalizeTourSlug(normalizedTourSlug, { slugify: false })
+            || normalizeTourSlug(activeTourRegistryEntry?.slug, { slugify: false });
+        const initialTourStatus = normalizeTourStatus(sourceTourConfig.status, { fallback: '' })
+            || normalizeTourStatus(normalizedTourStatusValue, { fallback: '' })
+            || normalizeTourStatus(activeTourRegistryEntry?.status, { fallback: 'draft' });
+        const normalizeCardText = (value) => {
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'string') return value.trim();
+            if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+            return '';
+        };
+        const normalizePropertyStats = ({ rooms, area } = {}) => {
+            const stats = [];
+            const pushStat = (label, value) => {
+                const cleanLabel = normalizeCardText(label);
+                const cleanValue = normalizeCardText(value);
+                if (!cleanLabel || !cleanValue) return;
+                stats.push({ label: cleanLabel, value: cleanValue });
+            };
+            pushStat('Rooms', rooms);
+            pushStat('Area', area);
+            return stats;
+        };
+        const propertyCardState = {
+            eyebrow: normalizeCardText(propertyCard?.eyebrow) || '',
+            title: normalizeCardText(propertyCard?.title),
+            address: normalizeCardText(propertyCard?.address),
+            price: normalizeCardText(propertyCard?.price),
+            rooms: normalizeCardText(propertyCard?.rooms),
+            area: normalizeCardText(propertyCard?.area)
+        };
+        const buildPropertyCardData = () => ({
+            eyebrow: propertyCardState.eyebrow,
+            title: propertyCardState.title || TOUR_TITLE,
+            address: propertyCardState.address,
+            price: propertyCardState.price,
+            stats: normalizePropertyStats({
+                rooms: propertyCardState.rooms,
+                area: propertyCardState.area
+            })
+        });
+        let propertyCardData = buildPropertyCardData();
+        const normalizeVersion = (value) => {
+            if (!isNonEmptyString(value)) return '1.0';
+            const raw = String(value).trim();
+            const parts = raw.split('.');
+            if (!parts.length) return '1.0';
+            const allNumeric = parts.every((p) => /^\d+$/.test(p));
+            return allNumeric ? parts.join('.') : '1.0';
+        };
+        const bumpConfigVersion = (versionStr) => {
+            const base = normalizeVersion(versionStr);
+            const parts = base.split('.');
+            if (!parts.length || !parts.every((p) => /^\d+$/.test(p))) return '1.1';
+            const nums = parts.map((p) => Number(p));
+            nums[nums.length - 1] += 1;
+            return nums.join('.');
+        };
+        let configVersion = normalizeVersion(sourceTourConfig.configVersion ?? '1.0');
+        let updatedBy = isNonEmptyString(sourceTourConfig.updatedBy) ? sourceTourConfig.updatedBy.trim() : '';
+        let updatedAt = isNonEmptyString(sourceTourConfig.updatedAt) ? sourceTourConfig.updatedAt.trim() : '';
+        let changeSummary = isNonEmptyString(sourceTourConfig.changeSummary) ? sourceTourConfig.changeSummary : '';
+        let tourSlugDraft = initialTourSlug;
+        let tourStatusDraft = initialTourStatus;
+        let publishRegistryPayloadText = '';
+        let publishHintText = 'Publish-ready artifacts stay file-based in this pass.';
+        let propertyTitleDraft = propertyCardState.title;
+        let propertyAddressDraft = propertyCardState.address;
+        let propertyPriceDraft = propertyCardState.price;
+        let propertyRoomsDraft = propertyCardState.rooms;
+        let propertyAreaDraft = propertyCardState.area;
+        const rotationDraft = {
+            rx: Number(rotationDeg.rx),
+            ry: Number(rotationDeg.ry),
+            rz: Number(rotationDeg.rz)
+        };
+        const formatRotationDraftValue = (value) => {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? String(numeric) : '0';
+        };
+        const { emitEvent } = createAnalyticsClient({
+            debugEnabled,
+            tourId: tourConfig.tourId || 'default',
+            globalObj: window
+        });
+        let defaultPresetId = normalizedDefaultPresetId;
+        let editorDirtyState = false;
+        let hotspotPlacementMode = false;
+        let selectedHotspotId = '';
+        let selectedPresetId = '';
+        let validationState = { errors: [], warnings: [], hasBlockingErrors: false };
+        let settingsOpen = false;
+        let compactMenuOpen = false;
+        let viewerIdleTimerId = 0;
+        let viewerIdleActive = false;
+        let lastIdlePointerMoveAt = 0;
+        let idleSuppressUntilMs = 0;
+        let lastIdleWatchdogProbeAt = 0;
+        let lastViewerActivityAt = performance.now();
+        const HISTORY_LIMIT = 100;
+        const editorHistory = [];
+        let editorHistoryIndex = -1;
+        let savedEditorStateHash = '';
+        viewerStore.setState({
+            settingsOpen,
+            compactMenuOpen,
+            selectedHotspotId,
+            selectedPresetId,
+            hotspotPlacementMode,
+            editorDirty: editorDirtyState
+        });
+        let lastIdleGuardFlags = {
+            settingsOpen: false,
+            compactMenuOpen: false,
+            viewsOpen: false,
+            onboardingOpen: false
+        };
+        viewerStore.subscribe((state) => {
+            const nextFlags = {
+                settingsOpen: !!state.settingsOpen,
+                compactMenuOpen: !!state.compactMenuOpen,
+                viewsOpen: !!state.viewsOpen,
+                onboardingOpen: !!state.onboardingOpen
+            };
+            const changed = nextFlags.settingsOpen !== lastIdleGuardFlags.settingsOpen
+                || nextFlags.compactMenuOpen !== lastIdleGuardFlags.compactMenuOpen
+                || nextFlags.viewsOpen !== lastIdleGuardFlags.viewsOpen
+                || nextFlags.onboardingOpen !== lastIdleGuardFlags.onboardingOpen;
+            if (!changed) return;
+            lastIdleGuardFlags = nextFlags;
+            scheduleViewerIdleTimer();
+        });
+        const editorUi = createEditorUi({
+            elements: {
+                editorHotspotList,
+                editorPresetList,
+                hotspotEditorHint,
+                presetEditorHint,
+                editorDirty,
+                editorStatus,
+                selectedHotspotPos,
+                undoBtn,
+                redoBtn,
+                snapYValue
+            },
+            store: viewerStore
+        });
+        const editorAccordionSections = {
+            hotspots: editorSectionHotspots,
+            presets: editorSectionPresets,
+            export: editorSectionExport,
+            metadata: editorSectionMetadata,
+            validation: editorSectionValidation
+        };
+        let isEditorAccordionSyncing = false;
+        let activeEditorSectionKey = 'hotspots';
+
+        if (introEnabled) loadingOverlay.classList.add('intro-active');
+        renderPropertyCard();
+        loadingTitle.textContent = TOUR_TITLE;
+        updateRotationInfoLabel();
+        ctaBtn.textContent = ctaLabel;
+        viewsBtn.hidden = cameraPresets.length === 0;
+        editorPanel.hidden = !editEnabled;
+        editorRibbonGroup.hidden = !editEnabled;
+        topBar.classList.toggle('edit-mode', editEnabled);
+        syncEditorWorkspaceDock();
+        requestAnimationFrame(syncEditorWorkspaceDock);
+        loadDefaultBtn.hidden = true;
+        speedValue.textContent = Number(speedSlider.value).toFixed(1);
+        renderMetadataUi();
+        renderContentRegistryControls();
+        {
+            const thumb = new Image();
+            thumb.onload = () => {
+                loadingMedia.style.backgroundImage = `url('${THUMB_URL}')`;
+            };
+            thumb.onerror = () => {
+                loadingMedia.style.backgroundImage = '';
+            };
+            thumb.src = THUMB_URL;
+        }
+
+        const rawFetch = window.fetch.bind(window);
+        window.fetch = (input, init) => {
+            const url = typeof input === 'string' ? input : input?.url;
+            if (url && /\/collision\.lci(\?|$)/.test(url)) {
+                console.warn('Ignoring missing collision.lci');
+                return Promise.resolve(new Response(new ArrayBuffer(0), { status: 200, statusText: 'OK' }));
+            }
+            return rawFetch(input, init);
+        };
+
+        const scene = new THREE.Scene();
+
+        let qualityMode = qualitySelect.value;
+        let autoPerfEnabled = autoPerfToggle.checked;
+        let performanceMode = perfModeToggle.checked;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000);
+        document.body.appendChild(renderer.domElement);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 150000);
+        camera.fov = THREE.MathUtils.clamp(initialFov, 35, 90);
+        camera.up.set(0, 1, 0);
+        camera.position.set(0, 2, 0);
+        fovSlider.value = String(Math.round(camera.fov));
+        fovValue.textContent = String(Math.round(camera.fov));
+        heightSlider.value = camera.position.y.toFixed(2);
+        heightValue.textContent = Number(heightSlider.value).toFixed(2);
+        snapYValue.value = camera.position.y.toFixed(2);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 2, 1);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.update();
+
+        const walkControls = new PointerLockControls(camera, renderer.domElement);
+        const moveKeys = new Set();
+        const clock = new THREE.Clock();
+        const fitDirection = new THREE.Vector3(1, 0.35, 1).normalize();
+        let lastBounds = null;
+        let maxLoadingPercent = 0;
+        let sceneReady = false;
+        let startupViewApplied = false;
+        const MODES = { ORBIT: 'orbit', WALK: 'walk' };
+        const MOVEMENT_KEY_CODES = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'Space', 'KeyC']);
+        let mode = MODES.ORBIT;
+        let lccObj = null;
+        const WALK_HELP = 'WASD move | Mouse look | Space/C up/down | Shift sprint';
+        const onboardingSteps = [
+            {
+                title: 'Orbit Controls',
+                body: 'Drag to orbit, mouse wheel to zoom, right-drag to pan.\nUse Reset anytime to return to the best framing.'
+            },
+            {
+                title: 'Walk Controls',
+                body: 'Press Walk, then click the view to lock the mouse.\nUse WASD to move, Space/C for vertical movement, Shift to sprint, and Esc to exit walk mode.\nShortcuts: R reset | F fullscreen | H or ? help.'
+            }
+        ];
+        const DEBUG_HINT = 'Shift+Click prints world coords';
+        let hoveredHotspot = null;
+        let hotspotScaleWorld = 1;
+        let draggingHotspotId = '';
+        let draggingPointerId = null;
+        let draggingHotspotMoved = false;
+        let suppressCanvasClickOnce = false;
+        let activeHotspotInfoId = '';
+        let activeHotspotInfoScore = Infinity;
+        let activeHotspotInfoContent = null;
+        let lastHotspotInfoEvalAt = 0;
+        const HOTSPOT_INFO_EVAL_INTERVAL_MS = 140;
+        const HOTSPOT_INFO_SWITCH_HYSTERESIS = 0.12;
+        const hotspotProjectVec = new THREE.Vector3();
+        const hotspotDirVec = new THREE.Vector3();
+        const hotspotCameraForward = new THREE.Vector3();
+
+        function updateRotationInfoLabel() {
+            rotInfo.textContent = `Rot: ${rotationDraft.rx}/${rotationDraft.ry}/${rotationDraft.rz}`;
+        }
+
+        function applyRotationDraftToRuntime() {
+            rotationDeg.rx = rotationDraft.rx;
+            rotationDeg.ry = rotationDraft.ry;
+            rotationDeg.rz = rotationDraft.rz;
+            updateRotationInfoLabel();
+            const modelRoot = lccObj?.root;
+            if (!modelRoot?.rotation || typeof modelRoot.rotation.set !== 'function') return;
+            modelRoot.rotation.set(
+                THREE.MathUtils.degToRad(rotationDraft.rx),
+                THREE.MathUtils.degToRad(rotationDraft.ry),
+                THREE.MathUtils.degToRad(rotationDraft.rz),
+                'XYZ'
+            );
+            if (typeof modelRoot.updateMatrix === 'function') modelRoot.updateMatrix();
+            if (typeof modelRoot.updateMatrixWorld === 'function') modelRoot.updateMatrixWorld(true);
+        }
+
+        const hotspotEngine = createHotspotEngine({
+            THREE,
+            scene,
+            camera,
+            rendererDom: renderer.domElement,
+            loadingOverlay,
+            getLccObj: () => lccObj,
+            controls
+        });
+        const hotspotSprites = hotspotEngine.getSprites();
+        function syncHotspotRuntimeState() {
+            const runtime = hotspotEngine.getState();
+            draggingHotspotId = runtime.draggingHotspotId;
+            draggingPointerId = runtime.draggingPointerId;
+            draggingHotspotMoved = runtime.draggingHotspotMoved;
+            hotspotScaleWorld = runtime.hotspotScaleWorld;
+        }
+
+        const viewerEngine = createViewerEngine({
+            THREE,
+            scene,
+            renderer,
+            camera,
+            controls,
+            pointerLockControl: walkControls,
+            LCCRender,
+            qualityCaps: QUALITY_CAPS,
+            initialQualityMode: qualityMode,
+            autoPerfEnabled,
+            performanceMode,
+            modeEnum: MODES,
+            initialMode: mode,
+            onModeChanged: ({ mode: nextMode }) => {
+                mode = nextMode;
+                viewerStore.setState({ mode: nextMode });
+            },
+            onFpsUpdated: ({ currentFps, renderScale }) => {
+                fpsMeter.textContent = `FPS ${currentFps.toFixed(0)} | Scale ${renderScale.toFixed(2)}x`;
+            },
+            onFovUpdated: (fov) => {
+                fovSlider.value = String(Math.round(fov));
+                fovValue.textContent = String(Math.round(fov));
+            }
+        });
+        viewerEngine.applyRendererResolution();
+        const onboardingUi = createOnboardingUi({
+            elements: {
+                onboardingModal,
+                onboardingTitle,
+                onboardingBody,
+                onboardPrev,
+                onboardNext,
+                onboardDone
+            },
+            walkBtn,
+            helpEl,
+            steps: onboardingSteps,
+            storageKey: ONBOARDED_KEY,
+            store: viewerStore
+        });
+
+        function setLoadingVisual(percent, statusText) {
+            loadingUi.setProgress(percent, statusText);
+        }
+
+        function updateFpsMeter() {
+            const runtime = viewerEngine.getRuntimeSnapshot();
+            fpsMeter.textContent = `FPS ${runtime.currentFps.toFixed(0)} | Scale ${runtime.renderScale.toFixed(2)}x`;
+        }
+
+        function applyRendererResolution() {
+            viewerEngine.applyRendererResolution();
+        }
+
+        function setLoadingErrorState(message) {
+            loadingUi.setError(message);
+        }
+
+        function hideLoadingOverlay() {
+            loadingUi.hideOverlay();
+            registerViewerActivity();
+        }
+
+        function hideIntro() {
+            loadingUi.hideIntro();
+        }
+
+        function tryPlayIntro() {
+            loadingUi.tryPlayIntro(introEnabled);
+        }
+
+        function readOnboarded() {
+            return onboardingUi.isOnboarded();
+        }
+
+        function writeOnboarded() {
+            onboardingUi.markOnboarded();
+        }
+
+        function renderOnboardingStep() {
+            onboardingUi.renderStep();
+        }
+
+        function openOnboarding(stepIndex = 0) {
+            onboardingUi.open(stepIndex);
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        }
+
+        function closeOnboarding(markOnboarded = false) {
+            onboardingUi.close(markOnboarded);
+            registerViewerActivity();
+        }
+
+        function toggleOnboarding() {
+            onboardingUi.toggle();
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        }
+
+        function setViewerIdleActive(active) {
+            const next = !!active;
+            if (viewerIdleActive === next) return;
+            viewerIdleActive = next;
+            overlay.classList.toggle('viewer-idle', viewerIdleActive);
+        }
+
+        function clearViewerIdleTimer() {
+            if (!viewerIdleTimerId) return;
+            window.clearTimeout(viewerIdleTimerId);
+            viewerIdleTimerId = 0;
+        }
+
+        function isViewerIdleProtectedState() {
+            if (editEnabled || !sceneReady) return true;
+            if (!loadingOverlay.classList.contains('hidden')) return true;
+            if (!onboardingModal.classList.contains('hidden')) return true;
+            const uiState = viewerStore.getState();
+            if (uiState.settingsOpen || uiState.compactMenuOpen || uiState.viewsOpen) return true;
+            if (helpEl.classList.contains('show')) return true;
+            if (performance.now() < idleSuppressUntilMs) return true;
+            const focusedEl = document.activeElement;
+            if (
+                focusedEl &&
+                (settingsDrawer.contains(focusedEl)
+                    || compactMenu.contains(focusedEl)
+                    || viewsPanel.contains(focusedEl)
+                    || hotspotInfoCard.contains(focusedEl))
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+        function scheduleViewerIdleTimer() {
+            clearViewerIdleTimer();
+            if (isViewerIdleProtectedState()) {
+                setViewerIdleActive(false);
+                return;
+            }
+            viewerIdleTimerId = window.setTimeout(() => {
+                viewerIdleTimerId = 0;
+                if (isViewerIdleProtectedState()) {
+                    scheduleViewerIdleTimer();
+                    return;
+                }
+                setViewerIdleActive(true);
+            }, IDLE_DELAY_MS);
+        }
+
+        function registerViewerActivity({ throttlePointerMove = false, suppressMs = 0 } = {}) {
+            const now = performance.now();
+            if (throttlePointerMove) {
+                if (now - lastIdlePointerMoveAt < IDLE_POINTER_MOVE_THROTTLE_MS) return;
+                lastIdlePointerMoveAt = now;
+            }
+            lastViewerActivityAt = now;
+            if (suppressMs > 0) {
+                idleSuppressUntilMs = Math.max(idleSuppressUntilMs, now + suppressMs);
+            }
+            if (viewerIdleActive) setViewerIdleActive(false);
+            scheduleViewerIdleTimer();
+        }
+
+        function ensureViewerIdleWatchdog(now = performance.now()) {
+            if (now - lastIdleWatchdogProbeAt < 320) return;
+            lastIdleWatchdogProbeAt = now;
+            if (isViewerIdleProtectedState()) {
+                if (viewerIdleActive) setViewerIdleActive(false);
+                return;
+            }
+            if (!viewerIdleActive && now - lastViewerActivityAt >= IDLE_DELAY_MS) {
+                setViewerIdleActive(true);
+                return;
+            }
+            if (!viewerIdleActive && !viewerIdleTimerId) scheduleViewerIdleTimer();
+        }
+
+        function syncPropertyCardDataFromDrafts() {
+            propertyCardState.title = normalizeCardText(propertyTitleDraft);
+            propertyCardState.address = normalizeCardText(propertyAddressDraft);
+            propertyCardState.price = normalizeCardText(propertyPriceDraft);
+            propertyCardState.rooms = normalizeCardText(propertyRoomsDraft);
+            propertyCardState.area = normalizeCardText(propertyAreaDraft);
+            propertyCardData = buildPropertyCardData();
+        }
+
+        function renderPropertyCard() {
+            brandSubtitle.textContent = propertyCardData.title || TOUR_TITLE;
+            propertyAddress.textContent = propertyCardData.address;
+            propertyAddress.hidden = !propertyCardData.address;
+            propertyPrice.textContent = propertyCardData.price;
+            propertyPrice.hidden = !propertyCardData.price;
+            propertyStats.innerHTML = '';
+            propertyCardData.stats.forEach((stat) => {
+                const chip = document.createElement('span');
+                chip.className = 'propertyStatChip';
+                const label = document.createElement('span');
+                label.className = 'propertyStatChipLabel';
+                label.textContent = stat.label;
+                const value = document.createElement('span');
+                value.className = 'propertyStatChipValue';
+                value.textContent = stat.value;
+                chip.appendChild(label);
+                chip.appendChild(value);
+                propertyStats.appendChild(chip);
+            });
+            propertyStats.hidden = propertyCardData.stats.length === 0;
+        }
+
+        function hideHotspotInfoCard() {
+            activeHotspotInfoId = '';
+            activeHotspotInfoScore = Infinity;
+            activeHotspotInfoContent = null;
+            hotspotInfoCard.classList.remove('show');
+            hotspotInfoCard.style.pointerEvents = 'none';
+        }
+
+        function resolveHotspotInfoContent(hotspot) {
+            if (!hotspot) return null;
+            const card = hotspot && typeof hotspot.card === 'object'
+                ? hotspot.card
+                : null;
+            const title = normalizeCardText(card?.title) || hotspot.label || 'Hotspot';
+            const description = normalizeCardText(card?.description);
+            const eyebrow = normalizeCardText(card?.eyebrow)
+                || (hotspot.type === 'cta' ? 'Featured' : (hotspot.type === 'link' ? 'Discover' : 'Hotspot'));
+            const ctaUrl = normalizeCardText(card?.ctaUrl)
+                || ((hotspot.type === 'link' || hotspot.type === 'cta') ? normalizeCardText(hotspot.actionUrl) : '');
+            const ctaLabel = normalizeCardText(card?.ctaLabel)
+                || (hotspot.type === 'cta' ? 'Contact' : 'Learn more');
+            return {
+                hotspotId: hotspot.id,
+                hotspotType: hotspot.type,
+                label: hotspot.label,
+                title,
+                description,
+                eyebrow,
+                ctaUrl,
+                ctaLabel
+            };
+        }
+
+        function showHotspotInfoCard(content, score) {
+            if (!content) {
+                hideHotspotInfoCard();
+                return;
+            }
+            activeHotspotInfoId = content.hotspotId;
+            activeHotspotInfoScore = score;
+            activeHotspotInfoContent = content;
+            hotspotInfoEyebrow.textContent = content.eyebrow;
+            hotspotInfoTitle.textContent = content.title;
+            hotspotInfoBody.textContent = content.description;
+            hotspotInfoBody.hidden = !content.description;
+            if (content.ctaUrl) {
+                hotspotInfoCta.textContent = content.ctaLabel;
+                hotspotInfoCta.hidden = false;
+            } else {
+                hotspotInfoCta.hidden = true;
+            }
+            hotspotInfoCard.classList.add('show');
+            hotspotInfoCard.style.pointerEvents = content.ctaUrl ? 'auto' : 'none';
+        }
+
+        function collectVisibleHotspotCandidates() {
+            const candidates = [];
+            camera.getWorldDirection(hotspotCameraForward);
+            for (const sprite of hotspotSprites) {
+                const hotspot = sprite?.userData?.hotspot;
+                if (!hotspot) continue;
+                hotspotProjectVec.copy(sprite.position).project(camera);
+                if (!Number.isFinite(hotspotProjectVec.x) || !Number.isFinite(hotspotProjectVec.y) || !Number.isFinite(hotspotProjectVec.z)) {
+                    continue;
+                }
+                if (hotspotProjectVec.z < -1 || hotspotProjectVec.z > 1) continue;
+                if (Math.abs(hotspotProjectVec.x) > 0.86 || Math.abs(hotspotProjectVec.y) > 0.74) continue;
+                hotspotDirVec.subVectors(sprite.position, camera.position);
+                const distance = hotspotDirVec.length();
+                if (!Number.isFinite(distance) || distance < 0.001) continue;
+                hotspotDirVec.normalize();
+                const facing = hotspotCameraForward.dot(hotspotDirVec);
+                if (facing < 0.35) continue;
+                const centerBias = Math.hypot(hotspotProjectVec.x * 1.05, hotspotProjectVec.y * 1.25);
+                const depthPenalty = Math.max(0, hotspotProjectVec.z) * 0.25;
+                const distancePenalty = Math.min(distance / 240, 1.2) * 0.25;
+                const score = centerBias * 1.75 + (1 - facing) * 0.8 + depthPenalty + distancePenalty;
+                candidates.push({ hotspot, score });
+            }
+            candidates.sort((a, b) => a.score - b.score);
+            return candidates;
+        }
+
+        function updateHotspotInfoCard(nowMs) {
+            if (nowMs - lastHotspotInfoEvalAt < HOTSPOT_INFO_EVAL_INTERVAL_MS) return;
+            lastHotspotInfoEvalAt = nowMs;
+            const uiState = viewerStore.getState();
+            const canShow = !editEnabled
+                && sceneReady
+                && loadingOverlay.classList.contains('hidden')
+                && onboardingModal.classList.contains('hidden')
+                && !uiState.settingsOpen
+                && !uiState.compactMenuOpen
+                && !uiState.viewsOpen;
+            if (!canShow) {
+                hideHotspotInfoCard();
+                return;
+            }
+            const candidates = collectVisibleHotspotCandidates();
+            if (!candidates.length) {
+                hideHotspotInfoCard();
+                return;
+            }
+            const best = candidates[0];
+            if (activeHotspotInfoId) {
+                const activeCandidate = candidates.find((item) => item.hotspot.id === activeHotspotInfoId);
+                if (activeCandidate) {
+                    const betterCandidate = best.hotspot.id !== activeHotspotInfoId
+                        && (best.score + HOTSPOT_INFO_SWITCH_HYSTERESIS < activeCandidate.score);
+                    if (!betterCandidate) {
+                        showHotspotInfoCard(resolveHotspotInfoContent(activeCandidate.hotspot), activeCandidate.score);
+                        return;
+                    }
+                }
+            }
+            showHotspotInfoCard(resolveHotspotInfoContent(best.hotspot), best.score);
+        }
+
+        function syncEditorWorkspaceDock() {
+            if (!editEnabled) {
+                editorPanel.style.top = '';
+                editorPanel.style.maxHeight = '';
+                return;
+            }
+            const dockGap = 6;
+            const bottomInset = window.innerWidth <= 980 ? 8 : 12;
+            const leftBottom = chromeTopLeft.getBoundingClientRect().bottom;
+            const rightBottom = chromeTopRight.getBoundingClientRect().bottom;
+            const nextTop = Math.round(Math.max(leftBottom, rightBottom) + dockGap);
+            const nextMaxHeight = Math.max(220, Math.floor(window.innerHeight - nextTop - bottomInset));
+            editorPanel.style.top = `${nextTop}px`;
+            editorPanel.style.maxHeight = `${nextMaxHeight}px`;
+        }
+
+        setLoadingVisual(0, 'Preparing 3D experience...');
+        tryPlayIntro();
+        buildViewsPanel();
+        setupHotspots();
+        refreshEditorUi();
+        if (editEnabled) {
+            initEditorAccordion('hotspots');
+            pushEditorHistory('initial');
+            savedEditorStateHash = editorHistory[editorHistoryIndex]?.hash || getCurrentEditableStateHash();
+            syncEditorDirtyFromHistory();
+            updateHistoryButtons();
+        }
+
+        function fitCameraToBounds(bounds) {
+            const fitResult = fitCameraToBoundsState({
+                THREE,
+                bounds,
+                camera,
+                controls,
+                fitDirection,
+                onHeightRange: ({ minY, maxY, step, valueY }) => {
+                    heightSlider.min = minY.toFixed(2);
+                    heightSlider.max = maxY.toFixed(2);
+                    heightSlider.step = step.toFixed(2);
+                    heightSlider.value = valueY.toFixed(2);
+                    heightValue.textContent = Number(heightSlider.value).toFixed(2);
+                },
+                onHotspotScale: (radius) => {
+                    hotspotScaleWorld = hotspotEngine.updateHotspotScale(radius, selectedHotspotId);
+                    syncHotspotRuntimeState();
+                }
+            });
+            if (!fitResult) return;
+            updateHotspotSelectionVisual();
+        }
+
+        function resetView() {
+            if (lastBounds) fitCameraToBounds(lastBounds);
+        }
+
+        function applyStartupViewOnce() {
+            const startupResult = applyStartupViewOnceState({
+                startupApplied: startupViewApplied,
+                startupInputs: {
+                    startParamRaw,
+                    hasUrlViewOverrides,
+                    requestedStartPresetId,
+                    defaultStartPresetId,
+                    resolveStartupPlan
+                },
+                findPresetById: (presetId) => cameraPresets.find((p) => p.id === presetId) || null,
+                startPresetAnimation: (preset, options) => animateToPreset(preset, options),
+                resetView,
+                applyFovFromQuery: false
+            });
+            startupViewApplied = startupResult.startupAppliedNext;
+        }
+
+        function openActionUrl(urlValue) {
+            if (!urlValue) return;
+            if (/^(?:tel:|mailto:)/i.test(urlValue)) {
+                window.open(urlValue, '_self');
+                return;
+            }
+            if (/^https?:\/\//i.test(urlValue)) {
+                window.open(urlValue, '_blank');
+                return;
+            }
+            window.open(urlValue, '_self');
+        }
+
+        function slugify(text) {
+            return (String(text || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '')
+                || 'item');
+        }
+
+        function getCurrentTourId() {
+            return String(tourConfig.tourId || sourceTourConfig.tourId || 'default').trim();
+        }
+
+        function getCurrentTourTitle() {
+            return normalizeCardText(tourConfig.title || sourceTourConfig.title || TOUR_TITLE || getCurrentTourId());
+        }
+
+        function getNormalizedTourSlugDraft() {
+            return normalizeTourSlug(tourSlugDraft, { slugify: false });
+        }
+
+        function getNormalizedTourStatusDraft() {
+            return normalizeTourStatus(tourStatusDraft, { fallback: 'draft' });
+        }
+
+        function buildCurrentViewerUrl() {
+            return buildViewerUrl({
+                tourId: getCurrentTourId(),
+                locationHref: window.location.href
+            });
+        }
+
+        function buildCurrentRegistryEntry({ statusOverride = '' } = {}) {
+            const tourId = getCurrentTourId();
+            if (!tourId) return null;
+            const status = statusOverride
+                ? normalizeTourStatus(statusOverride, { fallback: 'draft' })
+                : getNormalizedTourStatusDraft();
+            const slug = getNormalizedTourSlugDraft();
+            return {
+                tourId,
+                ...(isNonEmptyString(resolvedModelId) ? { modelId: resolvedModelId } : {}),
+                title: getCurrentTourTitle(),
+                ...(slug ? { slug } : {}),
+                status
+            };
+        }
+
+        function buildCurrentRegistryPayload({ forcePublished = false } = {}) {
+            const entry = buildCurrentRegistryEntry({
+                statusOverride: forcePublished ? 'published' : ''
+            });
+            if (!entry) return { tours: Array.isArray(tourRegistry) ? tourRegistry.slice() : [] };
+            return buildToursRegistryPayload({
+                tours: tourRegistry,
+                entry
+            });
+        }
+
+        function setEditorStatus(text) {
+            editorUi.setStatus(text || '');
+        }
+
+        function openEditorSection(sectionKey) {
+            if (!editEnabled) return;
+            const target = editorAccordionSections[sectionKey];
+            if (!target) return;
+            isEditorAccordionSyncing = true;
+            Object.entries(editorAccordionSections).forEach(([key, section]) => {
+                if (!section) return;
+                section.open = key === sectionKey;
+            });
+            activeEditorSectionKey = sectionKey;
+            isEditorAccordionSyncing = false;
+        }
+
+        function initEditorAccordion(defaultKey = 'hotspots') {
+            if (!editEnabled) return;
+            const entries = Object.entries(editorAccordionSections).filter(([, section]) => !!section);
+            if (!entries.length) return;
+            const firstOpenEntry = entries.find(([, section]) => section.open);
+            const initialKey = firstOpenEntry
+                ? firstOpenEntry[0]
+                : (editorAccordionSections[defaultKey] ? defaultKey : entries[0][0]);
+            openEditorSection(initialKey);
+
+            entries.forEach(([key, section]) => {
+                section.addEventListener('toggle', () => {
+                    if (!editEnabled || isEditorAccordionSyncing) return;
+                    if (section.open) {
+                        openEditorSection(key);
+                        return;
+                    }
+                    const hasOpenSection = entries.some(([, s]) => s.open);
+                    if (!hasOpenSection) openEditorSection(activeEditorSectionKey || initialKey);
+                });
+            });
+        }
+
+        function validateEditorDraft() {
+            const errors = [];
+            const warnings = [];
+            const addDuplicateIdErrors = (items, typeName) => {
+                const counts = new Map();
+                items.forEach((item) => {
+                    const id = String(item?.id || '').trim();
+                    if (!id) return;
+                    counts.set(id, (counts.get(id) || 0) + 1);
+                });
+                counts.forEach((count, id) => {
+                    if (count > 1) errors.push(`Duplicate ${typeName} id: "${id}"`);
+                });
+            };
+
+            addDuplicateIdErrors(cameraPresets, 'preset');
+            addDuplicateIdErrors(hotspotConfigs, 'hotspot');
+
+            const normalizedDefaultPresetId = String(defaultPresetId || '').trim();
+            if (
+                normalizedDefaultPresetId &&
+                !cameraPresets.some((preset) => String(preset?.id || '').trim() === normalizedDefaultPresetId)
+            ) {
+                errors.push(`defaultPresetId "${normalizedDefaultPresetId}" does not match any preset id.`);
+            }
+
+            const normalizedSlug = getNormalizedTourSlugDraft();
+            const normalizedStatus = getNormalizedTourStatusDraft();
+            if (normalizedSlug && !isValidTourSlug(normalizedSlug)) {
+                errors.push('Tour slug can only include lowercase letters, numbers, and hyphens.');
+            }
+            if (normalizedStatus === 'published' && !normalizedSlug) {
+                warnings.push('Published tours should include a slug for shareable handoff.');
+            }
+
+            if (!registryLoadErrors.tours) {
+                const currentTourId = getCurrentTourId();
+                const registryEntry = tourRegistry.find((entry) => entry.tourId === currentTourId) || null;
+                if (registryEntry) {
+                    const mismatchFields = [];
+                    if (normalizeCardText(registryEntry.modelId) !== normalizeCardText(resolvedModelId)) {
+                        mismatchFields.push('modelId');
+                    }
+                    if (normalizeCardText(registryEntry.title) !== getCurrentTourTitle()) {
+                        mismatchFields.push('title');
+                    }
+                    if (normalizeTourSlug(registryEntry.slug, { slugify: false }) !== normalizedSlug) {
+                        mismatchFields.push('slug');
+                    }
+                    if (normalizeTourStatus(registryEntry.status, { fallback: 'draft' }) !== normalizedStatus) {
+                        mismatchFields.push('status');
+                    }
+                    if (mismatchFields.length) {
+                        warnings.push(`Registry mismatch for "${currentTourId}" (${mismatchFields.join(', ')}).`);
+                    }
+                }
+            }
+
+            hotspotConfigs.forEach((hotspot, idx) => {
+                const type = hotspot?.type;
+                if (type !== 'link' && type !== 'cta') return;
+                const id = String(hotspot?.id || `hotspot-${idx + 1}`).trim();
+                const actionUrl = String(hotspot?.actionUrl || hotspot?.card?.ctaUrl || '').trim();
+                if (!actionUrl) {
+                    errors.push(`Hotspot "${id}" (${type}) requires an action URL.`);
+                    return;
+                }
+                if (!/^(?:https?:\/\/|tel:|mailto:)/i.test(actionUrl)) {
+                    warnings.push(`Hotspot "${id}" URL should start with http(s)://, tel:, or mailto:.`);
+                }
+            });
+
+            if (hotspotConfigs.length > 200) {
+                warnings.push(`Hotspot count is high (${hotspotConfigs.length}).`);
+            }
+
+            return {
+                errors,
+                warnings,
+                hasBlockingErrors: errors.length > 0
+            };
+        }
+
+        function renderValidationState(nextValidationState) {
+            if (!editEnabled) return;
+            const next = nextValidationState || { errors: [], warnings: [], hasBlockingErrors: false };
+            const errorCount = next.errors.length;
+            const warningCount = next.warnings.length;
+
+            if (!errorCount && !warningCount) {
+                validationSummary.textContent = 'All good';
+                validationSummary.className = 'editorHint';
+            } else {
+                const parts = [];
+                if (errorCount) parts.push(`${errorCount} error${errorCount === 1 ? '' : 's'}`);
+                if (warningCount) parts.push(`${warningCount} warning${warningCount === 1 ? '' : 's'}`);
+                validationSummary.textContent = parts.join(', ');
+                validationSummary.className = errorCount
+                    ? 'editorHint validationSummaryError'
+                    : 'editorHint validationSummaryWarn';
+            }
+
+            validationErrors.innerHTML = '';
+            next.errors.forEach((message) => {
+                const li = document.createElement('li');
+                li.textContent = message;
+                validationErrors.appendChild(li);
+            });
+            validationErrors.hidden = errorCount === 0;
+
+            validationWarnings.innerHTML = '';
+            next.warnings.forEach((message) => {
+                const li = document.createElement('li');
+                li.textContent = message;
+                validationWarnings.appendChild(li);
+            });
+            validationWarnings.hidden = warningCount === 0;
+
+            copyConfigBtn.disabled = next.hasBlockingErrors;
+            downloadConfigBtn.disabled = next.hasBlockingErrors;
+        }
+
+        function recomputeEditorValidation() {
+            if (!editEnabled) return;
+            validationState = validateEditorDraft();
+            renderValidationState(validationState);
+        }
+
+        function renderContentRegistryControls() {
+            const hasTours = tourRegistry.length > 0;
+            const hasModels = modelRegistry.length > 0;
+
+            const setSelectItems = (selectEl, items, placeholderLabel) => {
+                if (!selectEl) return;
+                const previousValue = selectEl.value;
+                selectEl.innerHTML = '';
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = placeholderLabel;
+                selectEl.appendChild(placeholder);
+                items.forEach((item) => {
+                    const option = document.createElement('option');
+                    option.value = item.value;
+                    option.textContent = item.label;
+                    selectEl.appendChild(option);
+                });
+                if (items.some((item) => item.value === previousValue)) {
+                    selectEl.value = previousValue;
+                }
+            };
+
+            const tourItems = tourRegistry.map((entry) => ({
+                value: entry.tourId,
+                label: entry.status
+                    ? `${entry.title} (${entry.tourId}, ${entry.status})`
+                    : `${entry.title} (${entry.tourId})`
+            }));
+            const modelItems = modelRegistry.map((entry) => ({
+                value: entry.modelId,
+                label: `${entry.name} (${entry.modelId})`
+            }));
+
+            setSelectItems(metaOpenTourSelect, tourItems, hasTours ? 'Select a tour...' : 'No tours available');
+            setSelectItems(metaNewModelSelect, modelItems, hasModels ? 'Select a model...' : 'No models available');
+
+            if (hasTours) {
+                const activeTourId = tourConfig.tourId || '';
+                if (tourItems.some((item) => item.value === activeTourId)) {
+                    metaOpenTourSelect.value = activeTourId;
+                }
+            }
+
+            if (hasModels) {
+                const preferredModelId = resolvedModelId || selectedDraftModel?.modelId || '';
+                if (preferredModelId && modelItems.some((item) => item.value === preferredModelId)) {
+                    metaNewModelSelect.value = preferredModelId;
+                }
+            }
+
+            metaOpenTourSelect.disabled = !hasTours;
+            metaOpenTourBtn.disabled = !hasTours || !isNonEmptyString(metaOpenTourSelect.value);
+            metaNewModelSelect.disabled = !hasModels;
+            metaCreateTourBtn.disabled = !hasModels || !isNonEmptyString(metaNewModelSelect.value);
+
+            const hints = [];
+            if (registryLoadErrors.tours) hints.push('Tour registry unavailable');
+            if (registryLoadErrors.models) hints.push('Model registry unavailable');
+            metaContentHint.textContent = hints.length
+                ? `${hints.join(' · ')}.`
+                : 'Open an existing tour or start a new draft from a model.';
+        }
+
+        function renderMetadataUi() {
+            metaUpdatedBy.value = updatedBy || '';
+            metaConfigVersion.textContent = configVersion || '1.0';
+            metaUpdatedAt.textContent = updatedAt || 'Not exported yet';
+            metaChangeSummary.value = changeSummary || '';
+            metaTourStatus.value = getNormalizedTourStatusDraft();
+            metaTourSlug.value = tourSlugDraft || '';
+            const viewerUrl = buildCurrentViewerUrl();
+            metaViewerUrl.textContent = viewerUrl || 'Unavailable';
+            metaCopyViewerUrlBtn.disabled = !isNonEmptyString(viewerUrl);
+            metaCopyRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
+            metaDownloadRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
+            metaPublishHint.textContent = publishHintText;
+            metaPropertyTitle.value = propertyTitleDraft || '';
+            metaPropertyAddress.value = propertyAddressDraft || '';
+            metaPropertyPrice.value = propertyPriceDraft || '';
+            metaPropertyRooms.value = propertyRoomsDraft || '';
+            metaPropertyArea.value = propertyAreaDraft || '';
+            metaRotationRx.value = formatRotationDraftValue(rotationDraft.rx);
+            metaRotationRy.value = formatRotationDraftValue(rotationDraft.ry);
+            metaRotationRz.value = formatRotationDraftValue(rotationDraft.rz);
+        }
+
+        function setEditorDirty(nextDirty) {
+            editorDirtyState = !!nextDirty;
+            editorUi.setDirty(editorDirtyState);
+        }
+
+        function touchEditor() {
+            if (!editEnabled) return;
+            setEditorDirty(true);
+            if (isNonEmptyString(publishRegistryPayloadText)) {
+                publishRegistryPayloadText = '';
+                publishHintText = 'Draft changed after last publish prep. Run publish prep again.';
+                metaCopyRegistryBtn.disabled = true;
+                metaDownloadRegistryBtn.disabled = true;
+                metaPublishHint.textContent = publishHintText;
+            }
+            recomputeEditorValidation();
+        }
+
+        function cloneState(value) {
+            return JSON.parse(JSON.stringify(value));
+        }
+
+        function captureEditableEditorState(action = 'edited') {
+            return {
+                action,
+                hotspots: cloneState(hotspotConfigs),
+                cameraPresets: cloneState(cameraPresets),
+                defaultPresetId: defaultPresetId || ''
+            };
+        }
+
+        function hashEditableEditorState(snapshot) {
+            return JSON.stringify({
+                hotspots: snapshot.hotspots || [],
+                cameraPresets: snapshot.cameraPresets || [],
+                defaultPresetId: snapshot.defaultPresetId || ''
+            });
+        }
+
+        function getCurrentEditableStateHash() {
+            return hashEditableEditorState(captureEditableEditorState('current'));
+        }
+
+        function updateHistoryButtons() {
+            if (!editEnabled) return;
+            editorUi.setHistoryButtons({
+                canUndo: editorHistoryIndex > 0,
+                canRedo: !(editorHistoryIndex < 0 || editorHistoryIndex >= editorHistory.length - 1)
+            });
+        }
+
+        function syncEditorDirtyFromHistory() {
+            if (!editEnabled) return;
+            const currentHash = editorHistoryIndex >= 0
+                ? editorHistory[editorHistoryIndex].hash
+                : getCurrentEditableStateHash();
+            setEditorDirty(currentHash !== savedEditorStateHash);
+        }
+
+        function rebuildHotspotsFromConfig() {
+            hotspotEngine.setHotspots(hotspotConfigs, selectedHotspotId);
+            syncHotspotRuntimeState();
+            hoveredHotspot = null;
+            hotspotEngine.setHoveredHotspot('', selectedHotspotId);
+        }
+
+        function restoreEditorSnapshot(snapshot) {
+            if (!snapshot) return;
+            hotspotConfigs.splice(0, hotspotConfigs.length, ...cloneState(snapshot.hotspots || []));
+            cameraPresets.splice(0, cameraPresets.length, ...cloneState(snapshot.cameraPresets || []));
+            defaultPresetId = isNonEmptyString(snapshot.defaultPresetId) ? snapshot.defaultPresetId : '';
+            if (defaultPresetId && !cameraPresets.some((preset) => preset.id === defaultPresetId)) {
+                defaultPresetId = '';
+            }
+            if (selectedHotspotId && !hotspotConfigs.some((hotspot) => hotspot.id === selectedHotspotId)) {
+                selectedHotspotId = '';
+            }
+            if (selectedPresetId && !cameraPresets.some((preset) => preset.id === selectedPresetId)) {
+                selectedPresetId = '';
+            }
+            viewerStore.setState({
+                selectedHotspotId,
+                selectedPresetId
+            });
+            rebuildHotspotsFromConfig();
+            buildViewsPanel();
+            renderEditorHotspotList();
+            renderEditorPresetList();
+            updateSelectedHotspotPosDisplay();
+            updateHotspotSelectionVisual();
+            recomputeEditorValidation();
+        }
+
+        function pushEditorHistory(action) {
+            if (!editEnabled) return;
+            const snapshot = captureEditableEditorState(action || 'edited');
+            const hash = hashEditableEditorState(snapshot);
+            const current = editorHistory[editorHistoryIndex];
+            if (current && current.hash === hash) {
+                updateHistoryButtons();
+                syncEditorDirtyFromHistory();
+                return;
+            }
+            if (editorHistoryIndex < editorHistory.length - 1) {
+                editorHistory.splice(editorHistoryIndex + 1);
+            }
+            editorHistory.push({ action: snapshot.action, hash, snapshot });
+            if (editorHistory.length > HISTORY_LIMIT) {
+                const overflow = editorHistory.length - HISTORY_LIMIT;
+                editorHistory.splice(0, overflow);
+                editorHistoryIndex = Math.max(-1, editorHistoryIndex - overflow);
+            }
+            editorHistoryIndex = editorHistory.length - 1;
+            updateHistoryButtons();
+            syncEditorDirtyFromHistory();
+        }
+
+        function undoEditor() {
+            if (!editEnabled || editorHistoryIndex <= 0) return;
+            const undoneAction = editorHistory[editorHistoryIndex]?.action || 'edited';
+            editorHistoryIndex -= 1;
+            const entry = editorHistory[editorHistoryIndex];
+            restoreEditorSnapshot(entry?.snapshot);
+            updateHistoryButtons();
+            syncEditorDirtyFromHistory();
+            setEditorStatus(`Undo: ${undoneAction}`);
+        }
+
+        function redoEditor() {
+            if (!editEnabled || editorHistoryIndex >= editorHistory.length - 1) return;
+            editorHistoryIndex += 1;
+            const entry = editorHistory[editorHistoryIndex];
+            restoreEditorSnapshot(entry?.snapshot);
+            updateHistoryButtons();
+            syncEditorDirtyFromHistory();
+            setEditorStatus(`Redo: ${entry?.action || 'edited'}`);
+        }
+
+        function markEditorSavedState() {
+            if (!editEnabled) return;
+            const snapshot = captureEditableEditorState('edited');
+            const hash = hashEditableEditorState(snapshot);
+            const current = editorHistory[editorHistoryIndex];
+            if (!current || current.hash !== hash) {
+                if (editorHistoryIndex < editorHistory.length - 1) {
+                    editorHistory.splice(editorHistoryIndex + 1);
+                }
+                editorHistory.push({ action: current?.action || 'edited', hash, snapshot });
+                if (editorHistory.length > HISTORY_LIMIT) {
+                    const overflow = editorHistory.length - HISTORY_LIMIT;
+                    editorHistory.splice(0, overflow);
+                    editorHistoryIndex = Math.max(-1, editorHistoryIndex - overflow);
+                }
+                editorHistoryIndex = editorHistory.length - 1;
+            }
+            savedEditorStateHash = hash;
+            updateHistoryButtons();
+            syncEditorDirtyFromHistory();
+        }
+
+        function findHotspotSpriteById(id) {
+            return hotspotEngine.getSpriteById(id);
+        }
+
+        function getHotspotById(id) {
+            return hotspotConfigs.find((h) => h.id === id) || null;
+        }
+
+        function updateSelectedHotspotPosDisplay() {
+            if (!editEnabled) return;
+            const hotspot = getHotspotById(selectedHotspotId);
+            editorUi.updateSelectedHotspotPos(hotspot);
+        }
+
+        function focusSelectedHotspotLabelInput() {
+            editorUi.focusSelectedHotspotLabel();
+        }
+
+        function focusSelectedPresetLabelInput() {
+            editorUi.focusSelectedPresetLabel();
+        }
+
+        function updateHotspotSelectionVisual() {
+            hotspotEngine.refreshSelectionVisual(selectedHotspotId);
+            syncHotspotRuntimeState();
+        }
+
+        function setHotspotPlacementMode(enabled) {
+            if (!enabled) {
+                // keep ongoing drag state intact unless explicitly ending it elsewhere
+            } else if (draggingHotspotId) {
+                stopHotspotDrag();
+            }
+            hotspotPlacementMode = !!enabled;
+            viewerStore.setState({ hotspotPlacementMode });
+            addHotspotBtn.classList.toggle('active', hotspotPlacementMode);
+            if (hotspotPlacementMode) {
+                hoveredHotspot = null;
+                hotspotEngine.setHoveredHotspot('', selectedHotspotId);
+                renderer.domElement.style.cursor = 'crosshair';
+                setEditorStatus('Placement mode: click on model to place hotspot.');
+            } else {
+                hotspotEngine.setHoveredHotspot(hoveredHotspot?.id || '', selectedHotspotId);
+                renderer.domElement.style.cursor = hoveredHotspot ? 'pointer' : '';
+                setEditorStatus('');
+            }
+        }
+
+        function showInfoMessage(text) {
+            onboardingUi.showInfo(text, 2000);
+        }
+
+        function showHint(text, duration = 4000) {
+            onboardingUi.showHint(text, duration);
+        }
+
+        function addHotspotSprite(hotspot) {
+            const sprite = hotspotEngine.addHotspotSprite(hotspot, selectedHotspotId);
+            syncHotspotRuntimeState();
+            return sprite;
+        }
+
+        function setupHotspots() {
+            hotspotEngine.setHotspots(hotspotConfigs, selectedHotspotId);
+            hotspotEngine.setHoveredHotspot(hoveredHotspot?.id || '', selectedHotspotId);
+            syncHotspotRuntimeState();
+        }
+
+        function getWorldPointFromEvent(event) {
+            return hotspotEngine.screenToWorld(event);
+        }
+
+        function getHotspotFromEvent(event) {
+            return hotspotEngine.pickFromPointer(event);
+        }
+
+        function applySnapYIfEnabled(point) {
+            if (!snapYToggle.checked) return point;
+            const y = parseNum(snapYValue.value);
+            if (y === null) return point;
+            return { x: point.x, y, z: point.z };
+        }
+
+        function setHotspotPosition(hotspot, point) {
+            hotspot.position[0] = point.x;
+            hotspot.position[1] = point.y;
+            hotspot.position[2] = point.z;
+            const sprite = findHotspotSpriteById(hotspot.id);
+            if (sprite) sprite.position.set(point.x, point.y, point.z);
+            updateSelectedHotspotPosDisplay();
+        }
+
+        function beginHotspotDrag(hotspot, pointerId) {
+            if (!editEnabled || !hotspot) return false;
+            selectedHotspotId = hotspot.id;
+            viewerStore.setState({ selectedHotspotId });
+            openEditorSection('hotspots');
+            const started = hotspotEngine.beginDrag({
+                hotspot,
+                pointerId,
+                editEnabled,
+                selectedHotspotId
+            });
+            if (!started) return false;
+            syncHotspotRuntimeState();
+            updateHotspotSelectionVisual();
+            renderEditorHotspotList();
+            updateSelectedHotspotPosDisplay();
+            renderer.domElement.style.cursor = 'grabbing';
+            setEditorStatus(`Dragging "${hotspot.label}"...`);
+            return true;
+        }
+
+        function stopHotspotDrag() {
+            if (!draggingHotspotId) return;
+            const ended = hotspotEngine.endDrag(selectedHotspotId);
+            syncHotspotRuntimeState();
+            if (ended.moved) {
+                suppressCanvasClickOnce = true;
+                touchEditor();
+                setEditorStatus('Hotspot position updated.');
+                pushEditorHistory('hotspot moved');
+            }
+            updateHotspotSelectionVisual();
+            updateSelectedHotspotPosDisplay();
+            renderer.domElement.style.cursor = hotspotPlacementMode
+                ? 'crosshair'
+                : (editEnabled && hoveredHotspot ? 'grab' : (hoveredHotspot ? 'pointer' : ''));
+        }
+
+        function dragHotspotFromPointer(event) {
+            if (!draggingHotspotId || draggingPointerId !== event.pointerId) return;
+            const hotspot = getHotspotById(draggingHotspotId);
+            if (!hotspot) {
+                stopHotspotDrag();
+                return;
+            }
+            const dragResult = hotspotEngine.dragFromPointer(event, {
+                hotspot,
+                applySnapY: applySnapYIfEnabled,
+                setHotspotPosition
+            });
+            syncHotspotRuntimeState();
+            if (!dragResult.moved) return;
+            renderer.domElement.style.cursor = 'grabbing';
+        }
+
+        function handleHotspotClick(hotspot) {
+            if (!hotspot) return false;
+            emitEvent('hotspot_click', { hotspotId: hotspot.id, label: hotspot.label, type: hotspot.type });
+            if (editEnabled) {
+                selectedHotspotId = hotspot.id;
+                viewerStore.setState({ selectedHotspotId });
+                openEditorSection('hotspots');
+                renderEditorHotspotList();
+                updateHotspotSelectionVisual();
+                updateSelectedHotspotPosDisplay();
+                focusSelectedHotspotLabelInput();
+                showInfoMessage(`Selected hotspot: ${hotspot.label}`);
+                return true;
+            }
+            if ((hotspot.type === 'link' || hotspot.type === 'cta') && hotspot.actionUrl) {
+                openActionUrl(hotspot.actionUrl);
+            } else {
+                showInfoMessage(`Info: ${hotspot.label}`);
+            }
+            return true;
+        }
+
+        function animateToPreset(preset, options = {}) {
+            const applyPresetFov = options.applyFov === true;
+            setMode(MODES.ORBIT);
+            const tween = animateCameraToPreset({
+                THREE,
+                camera,
+                controls,
+                preset,
+                currentFov: camera.fov,
+                applyPresetFov,
+                durationMs: Number.isFinite(options.durationMs) ? options.durationMs : undefined,
+                nowMs: performance.now(),
+                easing: options.easing || 'cinematic'
+            });
+            viewerEngine.setCameraTween(tween);
+        }
+
+        function buildExportConfig({ stampMetadata = false, statusOverride = '' } = {}) {
+            const cfg = JSON.parse(JSON.stringify(sourceTourConfig));
+            cfg.tourId = isNonEmptyString(cfg.tourId) ? cfg.tourId : (tourConfig.tourId || 'default');
+            cfg.title = isNonEmptyString(cfg.title) ? cfg.title : TOUR_TITLE;
+            cfg.modelEntryUrl = isNonEmptyString(cfg.modelEntryUrl) ? cfg.modelEntryUrl : MODEL_ENTRY_URL;
+            if (isNonEmptyString(resolvedModelId)) cfg.modelId = resolvedModelId;
+            else delete cfg.modelId;
+            const normalizedSlug = getNormalizedTourSlugDraft();
+            if (normalizedSlug) cfg.slug = normalizedSlug;
+            else delete cfg.slug;
+            cfg.status = statusOverride
+                ? normalizeTourStatus(statusOverride, { fallback: 'draft' })
+                : getNormalizedTourStatusDraft();
+            cfg.rotation = {
+                rx: rotationDraft.rx,
+                ry: rotationDraft.ry,
+                rz: rotationDraft.rz
+            };
+            cfg.fov = Number.isFinite(parseNum(cfg.fov)) ? Number(cfg.fov) : Number(initialFov);
+            cfg.startMode = cfg.startMode === 'walk' ? 'walk' : 'orbit';
+            cfg.cta = cfg.cta || {};
+            const setOptionalTopLevel = (key, value) => {
+                if (isNonEmptyString(value)) cfg[key] = String(value).trim();
+                else delete cfg[key];
+            };
+            setOptionalTopLevel('address', propertyAddressDraft);
+            setOptionalTopLevel('price', propertyPriceDraft);
+            setOptionalTopLevel('rooms', propertyRoomsDraft);
+            setOptionalTopLevel('area', propertyAreaDraft);
+            const normalizedPropertyTitle = normalizeCardText(propertyTitleDraft);
+            if (normalizedPropertyTitle) {
+                cfg.property = (cfg.property && typeof cfg.property === 'object') ? cfg.property : {};
+                cfg.property.title = normalizedPropertyTitle;
+            } else if (cfg.property && typeof cfg.property === 'object' && Object.prototype.hasOwnProperty.call(cfg.property, 'title')) {
+                delete cfg.property.title;
+            }
+            cfg.cameraPresets = cameraPresets.map((preset) => {
+                const item = {
+                    id: preset.id,
+                    label: preset.label,
+                    position: [preset.position[0], preset.position[1], preset.position[2]],
+                    target: [preset.target[0], preset.target[1], preset.target[2]]
+                };
+                if (preset.fov !== null && Number.isFinite(preset.fov)) item.fov = Number(preset.fov);
+                return item;
+            });
+            cfg.hotspots = hotspotConfigs.map((hotspot) => {
+                const item = {
+                    id: hotspot.id,
+                    label: hotspot.label,
+                    position: [hotspot.position[0], hotspot.position[1], hotspot.position[2]],
+                    type: hotspot.type
+                };
+                const exportActionUrl = normalizeCardText(hotspot.actionUrl) || normalizeCardText(hotspot.card?.ctaUrl);
+                if ((hotspot.type === 'link' || hotspot.type === 'cta') && exportActionUrl) {
+                    item.action = { url: exportActionUrl };
+                }
+                if (hotspot.card && typeof hotspot.card === 'object') {
+                    const card = {};
+                    const cardEyebrow = normalizeCardText(hotspot.card.eyebrow);
+                    const cardTitle = normalizeCardText(hotspot.card.title);
+                    const cardDescription = normalizeCardText(hotspot.card.description);
+                    const cardCtaLabel = normalizeCardText(hotspot.card.ctaLabel);
+                    const cardCtaUrl = normalizeCardText(hotspot.card.ctaUrl);
+                    if (cardEyebrow) card.eyebrow = cardEyebrow;
+                    if (cardTitle) card.title = cardTitle;
+                    if (cardDescription) card.description = cardDescription;
+                    if (cardCtaLabel) card.ctaLabel = cardCtaLabel;
+                    if (cardCtaUrl) card.ctaUrl = cardCtaUrl;
+                    if (Object.keys(card).length) item.card = card;
+                }
+                return item;
+            });
+            if (defaultPresetId) cfg.defaultPresetId = defaultPresetId;
+            else delete cfg.defaultPresetId;
+            if (stampMetadata) {
+                const nextVersion = bumpConfigVersion(configVersion);
+                const nextUpdatedAt = new Date().toISOString();
+                configVersion = nextVersion;
+                updatedAt = nextUpdatedAt;
+                sourceTourConfig.configVersion = nextVersion;
+                sourceTourConfig.updatedAt = nextUpdatedAt;
+                sourceTourConfig.updatedBy = updatedBy;
+                if (isNonEmptyString(changeSummary)) sourceTourConfig.changeSummary = changeSummary.trim();
+                else delete sourceTourConfig.changeSummary;
+                renderMetadataUi();
+            }
+            cfg.configVersion = configVersion;
+            cfg.updatedAt = updatedAt;
+            cfg.updatedBy = updatedBy;
+            if (isNonEmptyString(changeSummary)) cfg.changeSummary = changeSummary.trim();
+            else delete cfg.changeSummary;
+            return cfg;
+        }
+
+        async function copyCurrentConfigJson() {
+            recomputeEditorValidation();
+            if (validationState.hasBlockingErrors) {
+                setEditorStatus(`Export blocked: fix ${validationState.errors.length} validation error(s).`);
+                return;
+            }
+            const text = JSON.stringify(buildExportConfig({ stampMetadata: true }), null, 2);
+            try {
+                await navigator.clipboard.writeText(text);
+                setEditorStatus('Config copied to clipboard.');
+                markEditorSavedState();
+            } catch {
+                setEditorStatus('Clipboard unavailable. See console output.');
+                console.log(text);
+            }
+        }
+
+        function downloadCurrentConfigJson() {
+            recomputeEditorValidation();
+            if (validationState.hasBlockingErrors) {
+                setEditorStatus(`Export blocked: fix ${validationState.errors.length} validation error(s).`);
+                return;
+            }
+            const text = JSON.stringify(buildExportConfig({ stampMetadata: true }), null, 2);
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tour.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            setEditorStatus('Config downloaded.');
+            markEditorSavedState();
+        }
+
+        async function copyViewerUrlToClipboard() {
+            const viewerUrl = buildCurrentViewerUrl();
+            if (!isNonEmptyString(viewerUrl)) {
+                setEditorStatus('Viewer URL unavailable.');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(viewerUrl);
+                setEditorStatus('Viewer URL copied.');
+            } catch {
+                console.log(viewerUrl);
+                setEditorStatus('Clipboard unavailable. Viewer URL logged to console.');
+            }
+        }
+
+        async function copyPublishRegistryJson() {
+            if (!isNonEmptyString(publishRegistryPayloadText)) {
+                setEditorStatus('Run publish prep first to generate registry JSON.');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(publishRegistryPayloadText);
+                setEditorStatus('Registry JSON copied.');
+            } catch {
+                console.log(publishRegistryPayloadText);
+                setEditorStatus('Clipboard unavailable. Registry JSON logged to console.');
+            }
+        }
+
+        function downloadPublishRegistryJson() {
+            if (!isNonEmptyString(publishRegistryPayloadText)) {
+                setEditorStatus('Run publish prep first to generate registry JSON.');
+                return;
+            }
+            const blob = new Blob([publishRegistryPayloadText], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tours.registry.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            setEditorStatus('Registry JSON downloaded.');
+        }
+
+        function formatPublishBundleStamp(dateValue = new Date()) {
+            const date = dateValue instanceof Date ? dateValue : new Date();
+            const pad2 = (value) => String(value).padStart(2, '0');
+            return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}-${pad2(date.getHours())}${pad2(date.getMinutes())}${pad2(date.getSeconds())}`;
+        }
+
+        function downloadPublishBundleZip() {
+            recomputeEditorValidation();
+            if (validationState.hasBlockingErrors) {
+                setEditorStatus(`Publish bundle blocked: fix ${validationState.errors.length} validation error(s).`);
+                openEditorSection('validation');
+                return;
+            }
+
+            const generatedAt = new Date();
+            const exportConfig = buildExportConfig({
+                stampMetadata: true,
+                statusOverride: 'published'
+            });
+            const registryPayload = buildCurrentRegistryPayload({ forcePublished: true });
+            const bundleTourId = normalizeCardText(exportConfig.tourId) || getCurrentTourId() || 'tour';
+            const bundleTourPath = `tours/${bundleTourId}/tour.json`;
+            const bundleRegistryPath = 'tours/tours.registry.json';
+            const bundleManifestPath = 'publish-manifest.json';
+            const bundleViewerUrl = buildViewerUrl({
+                tourId: bundleTourId,
+                locationHref: window.location.href
+            });
+            const manifest = {
+                generatedAt: generatedAt.toISOString(),
+                tourId: bundleTourId,
+                modelId: normalizeCardText(exportConfig.modelId) || '',
+                title: normalizeCardText(exportConfig.title) || bundleTourId,
+                slug: normalizeTourSlug(exportConfig.slug, { slugify: false }),
+                status: 'published',
+                viewerUrl: bundleViewerUrl,
+                files: [
+                    bundleTourPath,
+                    bundleRegistryPath,
+                    bundleManifestPath
+                ]
+            };
+            const zipPayload = {
+                [bundleTourPath]: strToU8(JSON.stringify(exportConfig, null, 2)),
+                [bundleRegistryPath]: strToU8(JSON.stringify(registryPayload, null, 2)),
+                [bundleManifestPath]: strToU8(JSON.stringify(manifest, null, 2))
+            };
+            const zipBytes = zipSync(zipPayload, { level: 6 });
+            const zipBlob = new Blob([zipBytes], { type: 'application/zip' });
+            const downloadUrl = URL.createObjectURL(zipBlob);
+            const anchor = document.createElement('a');
+            anchor.href = downloadUrl;
+            anchor.download = `publish-bundle-${slugify(bundleTourId)}-${formatPublishBundleStamp(generatedAt)}.zip`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(downloadUrl);
+            setEditorStatus('Publish bundle downloaded: tour.json + tours.registry.json + publish-manifest.json.');
+            markEditorSavedState();
+        }
+
+        function runPublishPrep() {
+            if (!editEnabled) return;
+            if (tourStatusDraft !== 'published') {
+                tourStatusDraft = 'published';
+            }
+            const normalizedSlug = getNormalizedTourSlugDraft();
+            if (!normalizedSlug && isNonEmptyString(tourSlugDraft)) {
+                tourSlugDraft = normalizeTourSlug(tourSlugDraft, { slugify: false });
+            }
+            touchEditor();
+            if (validationState.hasBlockingErrors) {
+                publishRegistryPayloadText = '';
+                publishHintText = 'Publish prep blocked by validation errors.';
+                renderMetadataUi();
+                openEditorSection('validation');
+                setEditorStatus(`Publish blocked: fix ${validationState.errors.length} validation error(s).`);
+                return;
+            }
+
+            const registryPayload = buildCurrentRegistryPayload({ forcePublished: true });
+            publishRegistryPayloadText = JSON.stringify(registryPayload, null, 2);
+            if (Array.isArray(registryPayload.tours)) {
+                tourRegistry.splice(0, tourRegistry.length, ...registryPayload.tours);
+            }
+            publishHintText = 'Publish prep ready. Copy/download updated tours.registry.json and export tour.json.';
+            renderContentRegistryControls();
+            renderMetadataUi();
+            recomputeEditorValidation();
+            setEditorStatus('Publish prep ready.');
+        }
+
+        function buildViewsPanel() {
+            viewsPanel.innerHTML = '';
+            viewsBtn.hidden = cameraPresets.length === 0;
+            if (!cameraPresets.length) {
+                setViewsOpen(false);
+                return;
+            }
+            cameraPresets.forEach((preset) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = preset.id === defaultPresetId ? `${preset.label} (default)` : preset.label;
+                button.addEventListener('click', () => {
+                    emitEvent('view_preset_click', { presetId: preset.id, label: preset.label });
+                    animateToPreset(preset);
+                    setViewsOpen(false);
+                });
+                viewsPanel.appendChild(button);
+            });
+        }
+
+        function renderEditorHotspotList() {
+            if (!editEnabled) return;
+            editorUi.renderHotspotList({
+                editEnabled,
+                hotspots: hotspotConfigs,
+                selectedHotspotId,
+                handlers: {
+                    touchEditor,
+                    pushHistory: (action) => pushEditorHistory(action),
+                    onSelectHotspot: (hotspot) => {
+                        selectedHotspotId = hotspot.id;
+                        viewerStore.setState({ selectedHotspotId });
+                        openEditorSection('hotspots');
+                        updateHotspotSelectionVisual();
+                        renderEditorHotspotList();
+                        updateSelectedHotspotPosDisplay();
+                        focusSelectedHotspotLabelInput();
+                    },
+                    onDeleteHotspot: (hotspot) => {
+                        const idx = hotspotConfigs.findIndex((h) => h.id === hotspot.id);
+                        if (idx >= 0) hotspotConfigs.splice(idx, 1);
+                        hotspotEngine.removeHotspotById(hotspot.id, selectedHotspotId);
+                        syncHotspotRuntimeState();
+                        if (selectedHotspotId === hotspot.id) selectedHotspotId = '';
+                        viewerStore.setState({ selectedHotspotId });
+                        touchEditor();
+                        renderEditorHotspotList();
+                        updateHotspotSelectionVisual();
+                        updateSelectedHotspotPosDisplay();
+                        pushEditorHistory('hotspot deleted');
+                    }
+                }
+            });
+        }
+
+        function renderEditorPresetList() {
+            if (!editEnabled) return;
+            editorUi.renderPresetList({
+                editEnabled,
+                presets: cameraPresets,
+                selectedPresetId,
+                defaultPresetId,
+                handlers: {
+                    touchEditor,
+                    pushHistory: (action) => pushEditorHistory(action),
+                    onPresetLabelInput: () => {
+                        buildViewsPanel();
+                    },
+                    onPresetLabelCommit: () => {
+                        buildViewsPanel();
+                    },
+                    onSelectPreset: (preset) => {
+                        selectedPresetId = preset.id;
+                        viewerStore.setState({ selectedPresetId });
+                        openEditorSection('presets');
+                        renderEditorPresetList();
+                        focusSelectedPresetLabelInput();
+                    },
+                    onJumpPreset: (preset) => {
+                        selectedPresetId = preset.id;
+                        viewerStore.setState({ selectedPresetId });
+                        openEditorSection('presets');
+                        emitEvent('view_preset_click', { presetId: preset.id, label: preset.label });
+                        animateToPreset(preset);
+                        renderEditorPresetList();
+                    },
+                    onSetDefaultPreset: (preset) => {
+                        const changed = defaultPresetId !== preset.id;
+                        defaultPresetId = preset.id;
+                        touchEditor();
+                        renderEditorPresetList();
+                        if (changed) pushEditorHistory('default preset set');
+                    },
+                    onDeletePreset: (preset) => {
+                        const wasDefault = defaultPresetId === preset.id;
+                        const idx = cameraPresets.findIndex((p) => p.id === preset.id);
+                        if (idx >= 0) cameraPresets.splice(idx, 1);
+                        if (defaultPresetId === preset.id) defaultPresetId = '';
+                        if (selectedPresetId === preset.id) selectedPresetId = '';
+                        viewerStore.setState({ selectedPresetId });
+                        touchEditor();
+                        buildViewsPanel();
+                        renderEditorPresetList();
+                        pushEditorHistory(wasDefault ? 'default preset cleared' : 'preset deleted');
+                    }
+                }
+            });
+        }
+
+        function nextUniqueId(baseId, existingIds) {
+            let next = baseId;
+            let idx = 2;
+            while (existingIds.has(next)) {
+                next = `${baseId}-${idx}`;
+                idx += 1;
+            }
+            return next;
+        }
+
+        function createHotspotFromPoint(point) {
+            const label = `Hotspot ${hotspotConfigs.length + 1}`;
+            const type = 'info';
+            const actionUrl = '';
+            const existingIds = new Set(hotspotConfigs.map((h) => h.id));
+            const id = nextUniqueId(slugify(label), existingIds);
+            const hotspot = {
+                id,
+                label,
+                position: [point.x, point.y, point.z],
+                type,
+                actionUrl,
+                card: {}
+            };
+            hotspotConfigs.push(hotspot);
+            addHotspotSprite(hotspot);
+            selectedHotspotId = hotspot.id;
+            viewerStore.setState({ selectedHotspotId });
+            openEditorSection('hotspots');
+            touchEditor();
+            renderEditorHotspotList();
+            updateHotspotSelectionVisual();
+            updateSelectedHotspotPosDisplay();
+            focusSelectedHotspotLabelInput();
+            setEditorStatus(`Added hotspot "${label}". Rename it in the editor.`);
+            pushEditorHistory('hotspot added');
+        }
+
+        function saveCurrentViewPreset() {
+            const label = `View ${cameraPresets.length + 1}`;
+            const existingIds = new Set(cameraPresets.map((p) => p.id));
+            const id = nextUniqueId(slugify(label), existingIds);
+            let target = controls.target.clone();
+            if (mode === MODES.WALK) {
+                const fwd = new THREE.Vector3();
+                camera.getWorldDirection(fwd);
+                target = camera.position.clone().addScaledVector(fwd, Math.max(1, controls.minDistance || 5));
+            }
+            const preset = {
+                id,
+                label,
+                position: [camera.position.x, camera.position.y, camera.position.z],
+                target: [target.x, target.y, target.z],
+                fov: Math.round(camera.fov)
+            };
+            cameraPresets.push(preset);
+            selectedPresetId = preset.id;
+            viewerStore.setState({ selectedPresetId });
+            openEditorSection('presets');
+            touchEditor();
+            buildViewsPanel();
+            renderEditorPresetList();
+            focusSelectedPresetLabelInput();
+            setEditorStatus(`Saved view "${label}". Rename it in the editor.`);
+            pushEditorHistory('preset added');
+        }
+
+        function refreshEditorUi() {
+            if (!editEnabled) return;
+            snapYValue.disabled = !snapYToggle.checked;
+            renderEditorHotspotList();
+            renderEditorPresetList();
+            setEditorDirty(editorDirtyState);
+            updateSelectedHotspotPosDisplay();
+            renderMetadataUi();
+            recomputeEditorValidation();
+            updateHistoryButtons();
+        }
+
+        function updateHelpText() {
+            const debugSuffix = debugEnabled ? ` | ${DEBUG_HINT}` : '';
+            if (mode === MODES.WALK) {
+                showHint(walkControls.isLocked
+                    ? `${WALK_HELP} | Esc to release${debugSuffix}`
+                    : `Walk mode ready. Click to lock mouse | ${WALK_HELP}${debugSuffix}`);
+                return;
+            }
+            showHint(`Orbit mode ready. Drag to explore, scroll to zoom, and right-drag to pan.${debugSuffix}`);
+        }
+
+        async function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+            } else {
+                await document.exitFullscreen();
+            }
+        }
+
+        function setMode(nextMode) {
+            const modeResult = viewerEngine.setMode(nextMode);
+            const isOrbit = modeResult.isOrbit;
+            viewerStore.setState({ mode: modeResult.mode });
+            if (isOrbit) {
+                uiController.syncWalkHeightUi({ enabled: false });
+            } else {
+                uiController.syncWalkHeightUi({ enabled: true, yValue: camera.position.y });
+            }
+            uiController.syncModeUi({ isOrbit });
+            updateHelpText();
+        }
+
+        function updateWalk(deltaTime) {
+            viewerEngine.updateWalk(deltaTime, {
+                moveKeys,
+                getBaseSpeed: () => Number(speedSlider.value) || 2,
+                walkHeightEnabled: heightSlider.disabled === false,
+                onWalkHeightSync: (nextY) => {
+                    heightSlider.value = nextY.toFixed(2);
+                    heightValue.textContent = Number(heightSlider.value).toFixed(2);
+                }
+            });
+        }
+
+        function updateCameraTween(now) {
+            viewerEngine.updateCameraTween(now);
+        }
+
+        window.addEventListener('pointermove', () => {
+            registerViewerActivity({ throttlePointerMove: true });
+        }, { passive: true });
+        window.addEventListener('pointerdown', () => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        }, { passive: true });
+        window.addEventListener('touchstart', () => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        }, { passive: true });
+        window.addEventListener('touchmove', () => {
+            registerViewerActivity({ throttlePointerMove: true, suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        }, { passive: true });
+        window.addEventListener('wheel', () => {
+            registerViewerActivity();
+        }, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                setViewerIdleActive(false);
+                clearViewerIdleTimer();
+                return;
+            }
+            registerViewerActivity();
+        });
+        hotspotInfoCard.addEventListener('pointerenter', () => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        });
+        hotspotInfoCard.addEventListener('pointerdown', () => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        });
+        hotspotInfoCard.addEventListener('focusin', () => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+        });
+        registerViewerActivity();
+
+        speedSlider.addEventListener('input', () => {
+            speedValue.textContent = Number(speedSlider.value).toFixed(1);
+        });
+        heightSlider.addEventListener('input', () => {
+            heightValue.textContent = Number(heightSlider.value).toFixed(2);
+            if (mode === MODES.WALK) camera.position.y = Number(heightSlider.value);
+        });
+        fovSlider.addEventListener('input', () => {
+            const nextFov = Number(fovSlider.value);
+            viewerEngine.setFov(nextFov);
+            fovValue.textContent = String(Math.round(nextFov));
+        });
+        qualitySelect.addEventListener('change', () => {
+            qualityMode = qualitySelect.value;
+            viewerEngine.setQuality({ qualityMode });
+        });
+        autoPerfToggle.addEventListener('change', () => {
+            autoPerfEnabled = autoPerfToggle.checked;
+            viewerEngine.setQuality({ autoPerfEnabled });
+        });
+        perfModeToggle.addEventListener('change', () => {
+            performanceMode = perfModeToggle.checked;
+            viewerEngine.setQuality({ performanceMode });
+            if (lccObj?.useEnvironment) lccObj.useEnvironment(!performanceMode);
+        });
+        orbitBtn.addEventListener('click', () => setMode(MODES.ORBIT));
+        walkBtn.addEventListener('click', () => setMode(MODES.WALK));
+        homeBtn.addEventListener('click', () => {
+            emitEvent('home_click', {});
+            resetView();
+        });
+        resetBtn.addEventListener('click', () => resetView());
+        fullscreenBtn.addEventListener('click', () => toggleFullscreen());
+        viewsBtn.addEventListener('click', () => {
+            if (!cameraPresets.length) return;
+            const willShow = !viewerStore.getState().viewsOpen;
+            setViewsOpen(willShow);
+        });
+        settingsBtn.addEventListener('click', () => setSettingsOpen(!viewerStore.getState().settingsOpen));
+        settingsCloseBtn.addEventListener('click', () => setSettingsOpen(false));
+        settingsBackdrop.addEventListener('click', () => {
+            setSettingsOpen(false);
+            setCompactMenuOpen(false);
+        });
+        moreBtn.addEventListener('click', () => {
+            setCompactMenuOpen(!viewerStore.getState().compactMenuOpen);
+            setSettingsOpen(false);
+        });
+        moreResetBtn.addEventListener('click', () => {
+            setCompactMenuOpen(false);
+            resetView();
+        });
+        moreFullscreenBtn.addEventListener('click', async () => {
+            setCompactMenuOpen(false);
+            await toggleFullscreen();
+        });
+        moreHomeBtn.addEventListener('click', () => {
+            setCompactMenuOpen(false);
+            emitEvent('home_click', {});
+            resetView();
+        });
+        moreHelpBtn.addEventListener('click', () => {
+            setCompactMenuOpen(false);
+            openOnboarding(0);
+        });
+        addHotspotBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            setHotspotPlacementMode(!hotspotPlacementMode);
+        });
+        saveViewBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            saveCurrentViewPreset();
+        });
+        undoBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            undoEditor();
+        });
+        redoBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            redoEditor();
+        });
+        copyConfigBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            copyCurrentConfigJson();
+        });
+        downloadConfigBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            downloadCurrentConfigJson();
+        });
+        metaOpenTourSelect.addEventListener('change', () => {
+            metaOpenTourBtn.disabled = !isNonEmptyString(metaOpenTourSelect.value);
+        });
+        metaNewModelSelect.addEventListener('change', () => {
+            metaCreateTourBtn.disabled = !isNonEmptyString(metaNewModelSelect.value);
+        });
+        metaOpenTourBtn.addEventListener('click', () => {
+            if (!editEnabled || !isNonEmptyString(metaOpenTourSelect.value)) return;
+            const next = new URL(window.location.href);
+            next.searchParams.set('tour', metaOpenTourSelect.value);
+            next.searchParams.set('edit', '1');
+            next.searchParams.delete('new');
+            next.searchParams.delete('model');
+            window.location.href = `${next.pathname}${next.search}${next.hash}`;
+        });
+        metaCreateTourBtn.addEventListener('click', () => {
+            if (!editEnabled || !isNonEmptyString(metaNewModelSelect.value)) return;
+            const next = new URL(window.location.href);
+            next.searchParams.delete('tour');
+            next.searchParams.set('edit', '1');
+            next.searchParams.set('new', '1');
+            next.searchParams.set('model', metaNewModelSelect.value);
+            next.searchParams.delete('start');
+            window.location.href = `${next.pathname}${next.search}${next.hash}`;
+        });
+        metaTourStatus.addEventListener('change', () => {
+            if (!editEnabled) return;
+            const normalized = normalizeTourStatus(metaTourStatus.value, { fallback: 'draft' });
+            if (normalized === tourStatusDraft) {
+                renderMetadataUi();
+                return;
+            }
+            tourStatusDraft = normalized;
+            touchEditor();
+            renderMetadataUi();
+        });
+        metaTourSlug.addEventListener('input', () => {
+            if (!editEnabled) return;
+            const next = metaTourSlug.value;
+            if (next === tourSlugDraft) return;
+            tourSlugDraft = next;
+            touchEditor();
+            renderMetadataUi();
+        });
+        metaTourSlug.addEventListener('change', () => {
+            if (!editEnabled) return;
+            const normalized = normalizeTourSlug(metaTourSlug.value, { slugify: false });
+            const changed = normalized !== tourSlugDraft;
+            tourSlugDraft = normalized;
+            metaTourSlug.value = normalized;
+            if (changed) touchEditor();
+            renderMetadataUi();
+        });
+        metaCopyViewerUrlBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            copyViewerUrlToClipboard();
+        });
+        metaPublishBtn.addEventListener('click', () => runPublishPrep());
+        metaCopyRegistryBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            copyPublishRegistryJson();
+        });
+        metaDownloadRegistryBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            downloadPublishRegistryJson();
+        });
+        metaDownloadPublishBundleBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            downloadPublishBundleZip();
+        });
+        metaUpdatedBy.addEventListener('input', () => {
+            if (!editEnabled) return;
+            const next = metaUpdatedBy.value;
+            if (next === updatedBy) return;
+            updatedBy = next;
+            touchEditor();
+        });
+        metaUpdatedBy.addEventListener('change', () => {
+            if (!editEnabled) return;
+            const normalized = metaUpdatedBy.value.trim();
+            const changed = normalized !== updatedBy;
+            updatedBy = normalized;
+            metaUpdatedBy.value = normalized;
+            if (changed) touchEditor();
+        });
+        metaChangeSummary.addEventListener('input', () => {
+            if (!editEnabled) return;
+            const next = metaChangeSummary.value;
+            if (next === changeSummary) return;
+            changeSummary = next;
+            touchEditor();
+        });
+        const bindPropertyDraftInput = (inputEl, getter, setter) => {
+            inputEl.addEventListener('input', () => {
+                if (!editEnabled) return;
+                const next = inputEl.value;
+                if (next === getter()) return;
+                setter(next);
+                syncPropertyCardDataFromDrafts();
+                renderPropertyCard();
+                touchEditor();
+            });
+            inputEl.addEventListener('change', () => {
+                if (!editEnabled) return;
+                const normalized = inputEl.value.trim();
+                const changed = normalized !== getter();
+                setter(normalized);
+                inputEl.value = normalized;
+                if (changed) {
+                    syncPropertyCardDataFromDrafts();
+                    renderPropertyCard();
+                    touchEditor();
+                }
+            });
+        };
+        bindPropertyDraftInput(metaPropertyTitle, () => propertyTitleDraft, (value) => { propertyTitleDraft = value; });
+        bindPropertyDraftInput(metaPropertyAddress, () => propertyAddressDraft, (value) => { propertyAddressDraft = value; });
+        bindPropertyDraftInput(metaPropertyPrice, () => propertyPriceDraft, (value) => { propertyPriceDraft = value; });
+        bindPropertyDraftInput(metaPropertyRooms, () => propertyRoomsDraft, (value) => { propertyRoomsDraft = value; });
+        bindPropertyDraftInput(metaPropertyArea, () => propertyAreaDraft, (value) => { propertyAreaDraft = value; });
+        const bindRotationDraftInput = (inputEl, axis) => {
+            inputEl.addEventListener('input', () => {
+                if (!editEnabled) return;
+                const parsed = parseNum(inputEl.value);
+                if (parsed === null || parsed === rotationDraft[axis]) return;
+                rotationDraft[axis] = parsed;
+                applyRotationDraftToRuntime();
+                touchEditor();
+            });
+            inputEl.addEventListener('change', () => {
+                if (!editEnabled) return;
+                const parsed = parseNum(inputEl.value);
+                const normalized = parsed === null ? 0 : parsed;
+                const changed = normalized !== rotationDraft[axis];
+                rotationDraft[axis] = normalized;
+                inputEl.value = formatRotationDraftValue(normalized);
+                applyRotationDraftToRuntime();
+                if (changed) touchEditor();
+                renderMetadataUi();
+            });
+        };
+        bindRotationDraftInput(metaRotationRx, 'rx');
+        bindRotationDraftInput(metaRotationRy, 'ry');
+        bindRotationDraftInput(metaRotationRz, 'rz');
+        snapYToggle.addEventListener('change', () => refreshEditorUi());
+        helpBtn.addEventListener('click', () => {
+            setCompactMenuOpen(false);
+            openOnboarding(0);
+        });
+        exitEditorBtn.addEventListener('click', exitEditor);
+        uiController.bindOutsideDismiss({ documentRef: document });
+        ctaBtn.addEventListener('click', () => {
+            if (!ctaUrl) {
+                alert('CTA');
+                return;
+            }
+            openActionUrl(ctaUrl);
+        });
+        hotspotInfoCta.addEventListener('click', () => {
+            if (!activeHotspotInfoContent?.ctaUrl) return;
+            emitEvent('hotspot_click', {
+                hotspotId: activeHotspotInfoContent.hotspotId,
+                label: activeHotspotInfoContent.label,
+                type: activeHotspotInfoContent.hotspotType
+            });
+            openActionUrl(activeHotspotInfoContent.ctaUrl);
+        });
+        renderer.domElement.addEventListener('pointermove', (event) => {
+            if (hotspotPlacementMode) {
+                renderer.domElement.style.cursor = 'crosshair';
+                return;
+            }
+            if (draggingHotspotId) {
+                dragHotspotFromPointer(event);
+                return;
+            }
+            const hotspot = getHotspotFromEvent(event);
+            if (hotspot !== hoveredHotspot) {
+                hoveredHotspot = hotspot;
+                hotspotEngine.setHoveredHotspot(hotspot?.id || '', selectedHotspotId);
+            }
+            if (editEnabled) renderer.domElement.style.cursor = hotspot ? 'grab' : '';
+            else renderer.domElement.style.cursor = hotspot ? 'pointer' : '';
+        });
+        renderer.domElement.addEventListener('mouseleave', () => {
+            hoveredHotspot = null;
+            hotspotEngine.setHoveredHotspot('', selectedHotspotId);
+            if (draggingHotspotId) return;
+            renderer.domElement.style.cursor = hotspotPlacementMode ? 'crosshair' : '';
+        });
+        renderer.domElement.addEventListener('pointerdown', (event) => {
+            if (!loadingOverlay.classList.contains('hidden')) return;
+            if (!onboardingModal.classList.contains('hidden')) return;
+            if (!editEnabled) return;
+            if (hotspotPlacementMode) return;
+            if (event.button !== 0) return;
+            const hotspot = getHotspotFromEvent(event);
+            if (!hotspot) return;
+            const started = beginHotspotDrag(hotspot, event.pointerId);
+            if (!started) return;
+            try {
+                renderer.domElement.setPointerCapture(event.pointerId);
+            } catch {
+                // best effort
+            }
+            event.preventDefault();
+        });
+        renderer.domElement.addEventListener('pointerup', (event) => {
+            if (!draggingHotspotId || draggingPointerId !== event.pointerId) return;
+            try {
+                renderer.domElement.releasePointerCapture(event.pointerId);
+            } catch {
+                // best effort
+            }
+            stopHotspotDrag();
+        });
+        renderer.domElement.addEventListener('pointercancel', (event) => {
+            if (!draggingHotspotId || draggingPointerId !== event.pointerId) return;
+            stopHotspotDrag();
+        });
+        renderer.domElement.addEventListener('click', (event) => {
+            if (!loadingOverlay.classList.contains('hidden')) return;
+            if (!onboardingModal.classList.contains('hidden')) return;
+            if (suppressCanvasClickOnce) {
+                suppressCanvasClickOnce = false;
+                return;
+            }
+            if (event.shiftKey && debugEnabled) {
+                const hit = getWorldPointFromEvent(event);
+                if (hit.point) {
+                    console.log('[vios:author] world', hit.point);
+                } else {
+                    console.log('[vios:author] Raycast unavailable');
+                    console.log('[vios:author] fallback', {
+                        camera: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+                        target: { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+                    });
+                }
+                return;
+            }
+            if (editEnabled && hotspotPlacementMode) {
+                const hit = getWorldPointFromEvent(event);
+                if (hit.point) {
+                    const point = applySnapYIfEnabled({ ...hit.point });
+                    createHotspotFromPoint(point);
+                    setHotspotPlacementMode(false);
+                } else {
+                    setEditorStatus('Raycast unavailable. Could not place hotspot.');
+                    console.log('[vios:author] fallback', {
+                        camera: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+                        target: { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+                    });
+                }
+                return;
+            }
+            const hotspot = getHotspotFromEvent(event);
+            if (handleHotspotClick(hotspot)) return;
+            if (mode === MODES.WALK && !walkControls.isLocked) walkControls.lock();
+        });
+        walkControls.addEventListener('lock', () => updateHelpText());
+        walkControls.addEventListener('unlock', () => {
+            if (mode === MODES.WALK) setMode(MODES.ORBIT);
+            else updateHelpText();
+        });
+        window.addEventListener('keydown', (event) => {
+            registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
+            const activeTag = document.activeElement?.tagName;
+            const isInputFocus = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
+            const hasCommandModifier = event.ctrlKey || event.metaKey;
+            const isMovementKey = MOVEMENT_KEY_CODES.has(event.code);
+            if (editEnabled && hasCommandModifier && !isInputFocus) {
+                if (event.code === 'KeyZ' && event.shiftKey) {
+                    event.preventDefault();
+                    redoEditor();
+                    return;
+                }
+                if (event.code === 'KeyZ') {
+                    event.preventDefault();
+                    undoEditor();
+                    return;
+                }
+                if (event.code === 'KeyY') {
+                    event.preventDefault();
+                    redoEditor();
+                    return;
+                }
+            }
+            if (event.code === 'Space' || event.code === 'KeyC') event.preventDefault();
+            if (!isInputFocus) {
+                if (event.code === 'KeyR') {
+                    event.preventDefault();
+                    resetView();
+                } else if (event.code === 'KeyF') {
+                    event.preventDefault();
+                    toggleFullscreen();
+                } else if (event.code === 'Escape') {
+                    const uiState = viewerStore.getState();
+                    if (uiState.settingsOpen || uiState.compactMenuOpen) {
+                        event.preventDefault();
+                        setSettingsOpen(false);
+                        setCompactMenuOpen(false);
+                    } else if (mode === MODES.WALK) {
+                        event.preventDefault();
+                        setMode(MODES.ORBIT);
+                    }
+                } else if (event.code === 'KeyH' || (event.code === 'Slash' && event.shiftKey)) {
+                    event.preventDefault();
+                    if (sceneReady) toggleOnboarding();
+                }
+            }
+            if (!editEnabled && !isInputFocus && !hasCommandModifier && isMovementKey && mode !== MODES.WALK) {
+                setMode(MODES.WALK);
+            }
+            if (!editEnabled && !isInputFocus && !hasCommandModifier && isMovementKey && mode === MODES.WALK && !walkControls.isLocked) {
+                try {
+                    walkControls.lock();
+                } catch {
+                    // best effort
+                }
+            }
+            moveKeys.add(event.code);
+        });
+        window.addEventListener('keyup', (event) => moveKeys.delete(event.code));
+        window.addEventListener('blur', () => {
+            if (draggingHotspotId) stopHotspotDrag();
+        });
+
+        const modelMatrix = new THREE.Matrix4();
+        modelMatrix.makeRotationFromEuler(new THREE.Euler(
+            THREE.MathUtils.degToRad(rotationDeg.rx),
+            THREE.MathUtils.degToRad(rotationDeg.ry),
+            THREE.MathUtils.degToRad(rotationDeg.rz),
+            'XYZ'
+        ));
+
+        lccObj = LCCRender.load({
+            camera: camera,
+            scene: scene,
+            dataPath: MODEL_ENTRY_ABS_URL,
+            renderLib: THREE,
+            canvas: renderer.domElement,
+            renderer: renderer,
+            useEnv: !performanceMode,
+            useIndexDB: false,
+            useLoadingEffect: !performanceMode,
+            modelMatrix: modelMatrix,
+            appKey: null
+        }, (mesh) => {
+            console.log('Lcc object Loaded:  ', mesh);
+            applyRotationDraftToRuntime();
+            if (mesh?.getBounds) {
+                const b = mesh.getBounds();
+                if (b?.min && b?.max) {
+                    lastBounds = b;
+                    fitCameraToBounds(b);
+                }
+            }
+            applyStartupViewOnce();
+            sceneReady = true;
+            setLoadingVisual(100, 'Ready');
+            hideIntro();
+            setTimeout(() => {
+                hideLoadingOverlay();
+                if (!readOnboarded()) openOnboarding(0);
+            }, 220);
+        }, (percent) => {
+            const p = THREE.MathUtils.clamp(percent * 100, 0, 100);
+            maxLoadingPercent = Math.max(maxLoadingPercent, p);
+            setLoadingVisual(maxLoadingPercent, maxLoadingPercent > 97 ? 'Finalizing scene...' : 'Loading scene data...');
+        }, () => {
+            console.log("Lcc object loading failure");
+            setLoadingErrorState('Could not load this 3D tour. Please check files and retry.');
+        });
+
+        window.lccObj = lccObj;
+        window.LCCRender = LCCRender;
+        window.resetView = resetView;
+
+        setMode(startModeConfig === 'walk' ? MODES.WALK : MODES.ORBIT);
+        updateHelpText();
+
+        window.addEventListener('resize', () => {
+            viewerEngine.resize(window.innerWidth, window.innerHeight);
+            syncEditorWorkspaceDock();
+            registerViewerActivity();
+        });
+
+        renderer.setAnimationLoop(() => {
+            const delta = clock.getDelta();
+            const now = performance.now();
+            ensureViewerIdleWatchdog(now);
+            viewerEngine.tick({
+                now,
+                delta,
+                lccUpdate: true,
+                threeRender: true,
+                moveKeys,
+                getBaseSpeed: () => Number(speedSlider.value) || 2,
+                walkHeightEnabled: heightSlider.disabled === false,
+                onWalkHeightSync: (nextY) => {
+                    heightSlider.value = nextY.toFixed(2);
+                    heightValue.textContent = Number(heightSlider.value).toFixed(2);
+                }
+            });
+            updateHotspotInfoCard(now);
+        });
+        })();
+    </script>
+</body>
+
+</html>
+
+

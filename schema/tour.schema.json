@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./schema/tour.schema.json",
+  "title": "VIOS Tour Contract v1",
+  "description": "Current tour config contract used by examples/three.html.",
+  "type": "object",
+  "required": [
+    "tourId",
+    "title",
+    "modelEntryUrl"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "configVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tourId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelEntryUrl": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "slug": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ]
+    },
+    "address": {
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "price": {
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "rooms": {
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "area": {
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "property": {
+      "$ref": "#/$defs/propertyCard"
+    },
+    "rotation": {
+      "$ref": "#/$defs/rotation"
+    },
+    "fov": {
+      "type": "number"
+    },
+    "startMode": {
+      "type": "string",
+      "enum": [
+        "orbit",
+        "walk"
+      ]
+    },
+    "cta": {
+      "$ref": "#/$defs/cta"
+    },
+    "cameraPresets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/presetItem"
+      }
+    },
+    "hotspots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hotspotItem"
+      }
+    },
+    "defaultPresetId": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "array",
+      "description": "Three-component vector [x, y, z].",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number"
+      }
+    },
+    "rotation": {
+      "type": "object",
+      "description": "Euler degrees. Missing axes fall back to 0 at runtime.",
+      "additionalProperties": true,
+      "properties": {
+        "rx": {
+          "type": "number"
+        },
+        "ry": {
+          "type": "number"
+        },
+        "rz": {
+          "type": "number"
+        }
+      }
+    },
+    "cta": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "presetItem": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "position",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "position": {
+          "$ref": "#/$defs/vec3"
+        },
+        "target": {
+          "$ref": "#/$defs/vec3"
+        },
+        "fov": {
+          "type": "number"
+        }
+      }
+    },
+    "propertyCard": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "eyebrow": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "address": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "price": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "rooms": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "room": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "bedrooms": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "area": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "floorArea": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "areaSqm": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "size": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "stats": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    },
+    "hotspotCard": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "eyebrow": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "ctaLabel": {
+          "type": "string"
+        },
+        "ctaUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "hotspotItem": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "position": {
+          "$ref": "#/$defs/vec3"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "info",
+            "link",
+            "cta"
+          ]
+        },
+        "action": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "url": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "card": {
+          "$ref": "#/$defs/hotspotCard"
+        }
+      }
+    }
+  }
+}

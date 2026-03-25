@@ -1,0 +1,18 @@
+{
+  "tours": [
+    {
+      "tourId": "penthouse-001",
+      "modelId": "penthouse-model",
+      "title": "Penthouse – South Yarra",
+      "slug": "penthouse-001",
+      "status": "published"
+    },
+    {
+      "tourId": "brighton-emily-001",
+      "modelId": "brighton-emily",
+      "title": "Brighton Emily",
+      "slug": "brighton-emily",
+      "status": "draft"
+    }
+  ]
+}
