@@ -34,7 +34,7 @@ const hasAnyRotationAxis = (rotation) => (
 
 export const resolveRotationDeg = ({ tourRotation = null, modelDefaultRotation = null } = {}) => {
     const modelFallback = {
-        rx: parseRotationAxis(modelDefaultRotation?.rx, 0),
+        rx: parseRotationAxis(modelDefaultRotation?.rx, -90),
         ry: parseRotationAxis(modelDefaultRotation?.ry, 0),
         rz: parseRotationAxis(modelDefaultRotation?.rz, 0)
     };
