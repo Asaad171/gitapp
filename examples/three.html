@@ -3582,6 +3582,33 @@
             getLccObj: () => lccObj,
             controls
         });
+        const warnedHotspotApiFallbacks = new Set();
+        const warnHotspotApiFallbackOnce = (methodName) => {
+            const key = String(methodName || '');
+            if (!key || warnedHotspotApiFallbacks.has(key)) return;
+            warnedHotspotApiFallbacks.add(key);
+            console.warn(`[vios:hotspots] Missing hotspotEngine.${key}(), using compatibility no-op fallback.`);
+        };
+        const ensureHotspotEngineApiCompatibility = (engine) => {
+            if (!engine || typeof engine !== 'object') return engine;
+            if (typeof engine.setVisibilityPolicy !== 'function') {
+                engine.setVisibilityPolicy = () => {
+                    warnHotspotApiFallbackOnce('setVisibilityPolicy');
+                };
+            }
+            if (typeof engine.setActiveHotspot !== 'function') {
+                engine.setActiveHotspot = () => {
+                    warnHotspotApiFallbackOnce('setActiveHotspot');
+                };
+            }
+            if (typeof engine.tick !== 'function') {
+                engine.tick = () => {
+                    warnHotspotApiFallbackOnce('tick');
+                };
+            }
+            return engine;
+        };
+        ensureHotspotEngineApiCompatibility(hotspotEngine);
         const hotspotSprites = hotspotEngine.getSprites();
         function syncHotspotRuntimeState() {
             const runtime = hotspotEngine.getState();

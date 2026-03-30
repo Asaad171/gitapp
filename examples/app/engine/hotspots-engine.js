@@ -399,6 +399,8 @@ export const createHotspotEngine = ({
         visibilityPolicy
     });
 
+    // Public runtime contract used by examples/three.html.
+    // Keep these methods stable to avoid boot-time API mismatches.
     return {
         setHotspots,
         addHotspotSprite,
