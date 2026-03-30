@@ -59,7 +59,18 @@
         background: radial-gradient(circle at 22% 16%, rgba(62, 52, 43, 0.82), rgba(25, 21, 18, 0.95));
         opacity: 1;
         visibility: visible;
-        transition: opacity 0.5s ease, visibility 0.5s ease;
+        transition: opacity 0.56s ease, visibility 0.56s ease;
+    }
+
+    #loadingOverlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 78% 12%, rgba(217, 197, 178, 0.12), transparent 44%),
+            linear-gradient(170deg, rgba(217, 197, 178, 0.05), rgba(217, 197, 178, 0));
+        pointer-events: none;
+        z-index: 0;
     }
 
     #loadingOverlay.hidden {
@@ -69,8 +80,12 @@
     }
 
     #loadingOverlay.intro-active #loadingCard {
-        opacity: 0;
-        pointer-events: none;
+        opacity: 0.98;
+    }
+
+    #loadingOverlay.has-error #loadingCard {
+        border-color: rgba(226, 170, 145, 0.34);
+        box-shadow: 0 18px 42px rgba(8, 7, 6, 0.58);
     }
 
     #loadingMedia {
@@ -78,9 +93,9 @@
         inset: 0;
         background-size: cover;
         background-position: center;
-        filter: blur(10px) saturate(1.05);
-        transform: scale(1.04);
-        opacity: 0.32;
+        filter: blur(9px) saturate(1.06);
+        transform: scale(1.035);
+        opacity: 0.34;
         z-index: 0;
     }
 
@@ -98,13 +113,14 @@
         height: 100%;
         object-fit: cover;
         z-index: 1;
-        opacity: 1;
+        opacity: 0.96;
         pointer-events: none;
-        transition: opacity 0.45s ease;
+        transition: opacity 0.56s ease;
     }
 
     #introVideo.hidden {
         opacity: 0;
+        visibility: hidden;
     }
 
     #introPlayBtn {
@@ -125,42 +141,74 @@
     #loadingCard {
         position: relative;
         z-index: 2;
-        width: min(440px, 90vw);
-        padding: 18px 18px 14px;
-        border-radius: 20px;
+        width: min(468px, 90vw);
+        padding: 20px 20px 16px;
+        border-radius: 22px;
         background: var(--glass-bg-strong);
         border: 1px solid var(--glass-border);
         box-shadow: var(--glass-shadow);
         color: var(--vios-white-92);
         backdrop-filter: blur(18px) saturate(1.05);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: opacity 0.32s ease, transform 0.32s ease;
+    }
+
+    #loadingOverlay.hidden #loadingCard {
+        transform: translateY(10px);
+    }
+
+    #loadingBrandRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
     }
 
     #loadingBrand {
-        font-size: 11px;
+        font-size: 10.8px;
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: rgba(240, 225, 208, 0.9);
     }
 
+    #loadingPhase {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(217, 197, 178, 0.24);
+        background: rgba(217, 197, 178, 0.09);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(244, 232, 217, 0.86);
+        white-space: nowrap;
+    }
+
     #loadingTitle {
-        margin-top: 6px;
+        margin-top: 2px;
         font-size: 22px;
         font-weight: 500;
         font-family: var(--ui-serif);
         letter-spacing: 0.01em;
+        line-height: 1.18;
     }
 
     #loadingStatus {
-        margin-top: 8px;
-        font-size: 13px;
+        font-size: 13.2px;
+        line-height: 1.5;
         color: var(--vios-white-74);
+        min-height: 2.8em;
     }
 
     #loadingProgressWrap {
-        margin-top: 12px;
+        margin-top: 2px;
         width: 100%;
-        height: 8px;
+        height: 9px;
         border-radius: 999px;
         background: rgba(217, 197, 178, 0.16);
         overflow: hidden;
@@ -171,17 +219,33 @@
         width: 0%;
         border-radius: 999px;
         background: linear-gradient(90deg, rgba(217, 197, 178, 0.72), rgba(233, 218, 202, 0.95));
-        transition: width 0.12s linear;
+        transition: width 0.2s ease;
+    }
+
+    #loadingMetaRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
     }
 
     #loadingPercent {
-        margin-top: 8px;
         font-size: 12px;
-        color: var(--vios-white-74);
+        color: rgba(247, 239, 231, 0.84);
+        font-variant-numeric: tabular-nums;
+    }
+
+    #loadingHint {
+        font-size: 11px;
+        color: rgba(241, 230, 218, 0.62);
+        text-align: right;
     }
 
     #loadingErrorActions {
-        margin-top: 10px;
+        margin-top: 2px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     #loadingErrorActions button {
@@ -192,6 +256,13 @@
         border-radius: 999px;
         cursor: pointer;
         font-size: 12px;
+    }
+
+    #loadingErrorHint {
+        margin-top: 2px;
+        font-size: 11px;
+        line-height: 1.45;
+        color: rgba(246, 203, 180, 0.9);
     }
 
     #overlay {
@@ -565,18 +636,21 @@
     }
 
     #hotspotInfoCard {
+        --hotspot-accent: rgba(217, 197, 178, 0.46);
+        --hotspot-accent-soft: rgba(217, 197, 178, 0.15);
+        --hotspot-eyebrow: rgba(235, 223, 211, 0.62);
         right: calc(14px + var(--safe-right));
         bottom: calc(122px + var(--safe-bottom));
         width: min(320px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
         padding: 13px 14px 14px;
         z-index: 13;
         background: linear-gradient(162deg, rgba(47, 40, 35, 0.92), rgba(24, 21, 18, 0.94));
-        border: 1px solid rgba(217, 197, 178, 0.28);
+        border: 1px solid rgba(217, 197, 178, 0.3);
         box-shadow: 0 18px 44px rgba(8, 7, 6, 0.56), inset 0 1px 0 rgba(248, 240, 232, 0.07);
         opacity: 0;
         visibility: hidden;
         transform: translateY(8px);
-        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+        transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, border-color 0.26s ease, box-shadow 0.26s ease;
         pointer-events: none;
     }
 
@@ -594,6 +668,26 @@
         visibility: visible;
         transform: translateY(0);
         pointer-events: auto;
+        border-color: var(--hotspot-accent);
+        box-shadow: 0 18px 44px rgba(8, 7, 6, 0.56), 0 0 0 1px var(--hotspot-accent-soft), inset 0 1px 0 rgba(248, 240, 232, 0.07);
+    }
+
+    #hotspotInfoCard[data-hotspot-type="info"] {
+        --hotspot-accent: rgba(228, 215, 201, 0.42);
+        --hotspot-accent-soft: rgba(228, 215, 201, 0.14);
+        --hotspot-eyebrow: rgba(235, 223, 211, 0.66);
+    }
+
+    #hotspotInfoCard[data-hotspot-type="link"] {
+        --hotspot-accent: rgba(220, 206, 188, 0.48);
+        --hotspot-accent-soft: rgba(220, 206, 188, 0.16);
+        --hotspot-eyebrow: rgba(232, 219, 202, 0.68);
+    }
+
+    #hotspotInfoCard[data-hotspot-type="cta"] {
+        --hotspot-accent: rgba(217, 197, 178, 0.56);
+        --hotspot-accent-soft: rgba(217, 197, 178, 0.2);
+        --hotspot-eyebrow: rgba(240, 226, 207, 0.74);
     }
 
     #hotspotInfoEyebrow {
@@ -601,7 +695,8 @@
         font-weight: 500;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: rgba(235, 223, 211, 0.62);
+        color: var(--hotspot-eyebrow);
+        transition: color 0.24s ease;
     }
 
     #hotspotInfoTitle {
@@ -624,8 +719,8 @@
         margin-top: 12px;
         min-height: 34px;
         border-radius: 999px;
-        border: 1px solid rgba(217, 197, 178, 0.46);
-        background: rgba(217, 197, 178, 0.15);
+        border: 1px solid var(--hotspot-accent);
+        background: var(--hotspot-accent-soft);
         color: var(--vios-white-92);
         font-weight: 500;
         letter-spacing: 0.02em;
@@ -739,6 +834,49 @@
         color: var(--vios-white-92);
     }
 
+    #collisionWrap {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--vios-white-92);
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(217, 197, 178, 0.2);
+        background: rgba(31, 27, 24, 0.52);
+    }
+
+    #collisionEditorModesWrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(217, 197, 178, 0.16);
+    }
+
+    .collisionModeHeader {
+        font-size: 11.5px;
+        color: var(--vios-white-74);
+    }
+
+    .collisionModeToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--vios-white-92);
+        font-size: 12px;
+    }
+
+    .collisionModeToggle input[type='checkbox'] {
+        accent-color: var(--vios-gold);
+    }
+
+    #collisionViewerContract {
+        font-size: 11.5px;
+        color: var(--vios-white-74);
+        line-height: 1.45;
+    }
+
     #speedSlider,
     #heightSlider,
     #fovSlider {
@@ -767,6 +905,41 @@
         margin-top: 2px;
     }
 
+    #collisionHint {
+        font-size: 11.5px;
+        color: var(--vios-white-74);
+        line-height: 1.45;
+    }
+
+    #collisionPolicy {
+        font-size: 11.5px;
+        color: var(--vios-white-74);
+        line-height: 1.45;
+    }
+
+    #collisionMetaRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #collisionAvailabilityTag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 86px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(217, 197, 178, 0.28);
+        color: var(--vios-white-74);
+    }
+
+    #collisionAvailabilityTag.is-on {
+        border-color: rgba(157, 220, 181, 0.55);
+        color: rgba(157, 220, 181, 0.96);
+    }
+
     .sliderWrap.disabled {
         opacity: 0.45;
     }
@@ -792,12 +965,13 @@
         width: min(360px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
         max-height: calc(100vh - 90px - var(--safe-top) - var(--safe-bottom));
         overflow: hidden;
-        padding: 12px;
+        padding: 13px;
         z-index: 13;
         font-size: 12px;
         display: flex;
         flex-direction: column;
         gap: 0;
+        transition: width 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
     }
 
     #editorPanel[hidden] {
@@ -826,7 +1000,44 @@
     }
 
     #topBar.edit-mode ~ #editorPanel #editorBody {
-        padding-top: 8px;
+        padding-top: 9px;
+    }
+
+    #editorPanel.collapsed {
+        width: min(276px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
+        min-height: 0;
+        max-height: none;
+        padding: 10px 12px;
+    }
+
+    #editorPanel.collapsed #editorBody {
+        display: none;
+    }
+
+    #editorRestoreChip {
+        left: calc(14px + var(--safe-left));
+        top: calc(72px + var(--safe-top));
+        z-index: 14;
+        border-radius: 999px;
+        padding: 0 15px;
+        height: 35px;
+        border: 1px solid rgba(217, 197, 178, 0.3);
+        color: var(--vios-white-92);
+        background: rgba(31, 27, 24, 0.86);
+        box-shadow: var(--glass-shadow);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    #editorRestoreChip[hidden] {
+        display: none;
+    }
+
+    #minimizeEditorBtn {
+        border: 1px solid rgba(217, 197, 178, 0.3);
+        background: rgba(217, 197, 178, 0.14);
     }
 
     #editorTitle {
@@ -867,9 +1078,9 @@
         overflow: auto;
         display: flex;
         flex-direction: column;
-        gap: 11px;
+        gap: 14px;
         padding-right: 3px;
-        padding-bottom: 4px;
+        padding-bottom: 8px;
     }
 
     #editorRibbonUtils #exitEditorBtn,
@@ -901,7 +1112,7 @@
 
     .editorSection {
         border: 1px solid rgba(217, 197, 178, 0.16);
-        border-radius: 12px;
+        border-radius: 13px;
         background: rgba(31, 27, 24, 0.44);
         overflow: hidden;
     }
@@ -919,14 +1130,15 @@
     .editorSection summary {
         list-style: none;
         cursor: pointer;
-        padding: 10px 12px;
-        font-size: 11px;
+        padding: 12px 14px;
+        font-size: 11.8px;
         font-weight: 600;
         line-height: 1.25;
         user-select: none;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.065em;
         color: rgba(229, 219, 201, 0.88);
+        border-bottom: 1px solid rgba(217, 197, 178, 0.12);
     }
 
     .editorSection summary::-webkit-details-marker {
@@ -934,10 +1146,74 @@
     }
 
     .editorSectionBody {
-        padding: 0 12px 12px;
+        padding: 12px 14px 14px;
         display: flex;
         flex-direction: column;
+        gap: 11px;
+    }
+
+    #editorContextStrip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .editorContextChip {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-height: 46px;
+        border-radius: 9px;
+        border: 1px solid rgba(217, 197, 178, 0.17);
+        background: rgba(31, 27, 24, 0.48);
+        padding: 8px 9px;
+    }
+
+    .editorContextChip .chipLabel {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(232, 219, 204, 0.62);
+    }
+
+    .editorContextChip .chipValue {
+        font-size: 11.5px;
+        color: rgba(244, 233, 220, 0.94);
+        overflow-wrap: anywhere;
+    }
+
+    .editorSectionIntro {
+        margin: 0;
+        font-size: 11.1px;
+        line-height: 1.5;
+        color: rgba(229, 215, 200, 0.76);
+    }
+
+    .workflowGuide {
+        display: grid;
         gap: 8px;
+    }
+
+    .workflowStep {
+        border: 1px solid rgba(217, 197, 178, 0.14);
+        border-radius: 9px;
+        background: rgba(31, 27, 24, 0.36);
+        padding: 8px 9px;
+        display: grid;
+        gap: 4px;
+    }
+
+    .workflowStepTitle {
+        font-size: 10.7px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: rgba(235, 224, 208, 0.86);
+    }
+
+    .workflowStepBody {
+        font-size: 11px;
+        line-height: 1.42;
+        color: rgba(232, 219, 204, 0.72);
     }
 
     #editorExportActions {
@@ -948,15 +1224,42 @@
 
     #editorExportActions button {
         flex: 1;
-        min-width: 130px;
-        height: 31px;
+        min-width: 150px;
+        min-height: 32px;
         font-size: 11px;
     }
 
     #editorMetaGrid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 11px;
+    }
+
+    #editorContextGrid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .contextActionCard,
+    .exportStageCard {
+        border: 1px solid rgba(217, 197, 178, 0.14);
+        border-radius: 10px;
+        background: rgba(31, 27, 24, 0.36);
+        padding: 9px;
+    }
+
+    .contextActionCard > label,
+    .exportStageCard > label {
+        font-size: 11.5px;
+        color: rgba(238, 226, 211, 0.9);
+    }
+
+    .editorFieldHint {
+        margin: 0;
+        font-size: 10.8px;
+        line-height: 1.45;
+        color: rgba(232, 219, 204, 0.68);
     }
 
     .editorMetaFieldContent {
@@ -998,6 +1301,10 @@
         min-height: 32px;
     }
 
+    .editorMetaField .editorMetaReadonly {
+        min-width: 0;
+    }
+
     #metaViewerUrl {
         font-family: var(--ui-sans);
     }
@@ -1006,12 +1313,70 @@
         margin: 0;
     }
 
+    #exportWorkflowSummary {
+        margin: 0;
+    }
+
+    #exportWorkflowSummary[data-prep-state="ready"] {
+        color: rgba(208, 236, 210, 0.92);
+    }
+
+    #exportWorkflowSummary[data-prep-state="stale"] {
+        color: rgba(237, 218, 182, 0.95);
+    }
+
+    #exportWorkflowSummary[data-prep-state="blocked"] {
+        color: rgba(241, 190, 166, 0.96);
+    }
+
+    #publishStateGrid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .publishStateCell {
+        border: 1px solid rgba(217, 197, 178, 0.14);
+        border-radius: 8px;
+        background: rgba(31, 27, 24, 0.34);
+        padding: 7px 8px;
+        display: grid;
+        gap: 3px;
+    }
+
+    .publishStateLabel {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(232, 219, 204, 0.6);
+    }
+
+    .publishStateValue {
+        font-size: 11px;
+        line-height: 1.35;
+        color: rgba(241, 230, 216, 0.9);
+    }
+
+    .artifactGuide {
+        margin: 0;
+        padding-left: 16px;
+        display: grid;
+        gap: 3px;
+        font-size: 10.8px;
+        line-height: 1.4;
+        color: rgba(232, 219, 204, 0.74);
+    }
+
+    .artifactGuide code {
+        color: rgba(244, 233, 220, 0.92);
+    }
+
     #metaPublishHint {
         margin: 0;
     }
 
     #editorSectionMetadata .editorSectionBody {
-        max-height: clamp(220px, 42vh, 360px);
+        max-height: clamp(220px, 38vh, 340px);
         overflow-y: auto;
         overflow-x: hidden;
         overscroll-behavior: contain;
@@ -1038,38 +1403,40 @@
     .editorMetaField {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 5px;
     }
 
     .editorMetaField label {
-        font-size: 11px;
+        font-size: 11.8px;
         color: rgba(229, 215, 200, 0.82);
     }
 
     .editorMetaField input,
     .editorMetaField textarea,
     .editorMetaField select {
-        min-height: 32px;
+        min-height: 34px;
         border: 1px solid rgba(217, 197, 178, 0.2);
         background: rgba(31, 27, 24, 0.72);
         color: var(--vios-white-92);
         border-radius: 8px;
-        padding: 6px 8px;
-        font-size: 11.5px;
+        padding: 7px 9px;
+        font-size: 12px;
         resize: vertical;
     }
 
     .editorMetaReadonly {
-        min-height: 32px;
+        min-height: 34px;
         display: flex;
-        align-items: center;
-        padding: 6px 8px;
+        align-items: flex-start;
+        padding: 7px 9px;
         border-radius: 8px;
         background: rgba(31, 27, 24, 0.5);
         border: 1px solid rgba(217, 197, 178, 0.14);
         color: rgba(239, 228, 214, 0.9);
-        font-size: 11.5px;
+        font-size: 12px;
         overflow-wrap: anywhere;
+        line-height: 1.4;
+        white-space: normal;
     }
 
     #addHotspotBtn.active {
@@ -1089,7 +1456,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        font-size: 11px;
+        font-size: 11.5px;
         color: rgba(232, 219, 204, 0.82);
     }
 
@@ -1107,19 +1474,19 @@
     .editorList {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 9px;
         max-height: 210px;
         overflow: auto;
-        padding-right: 2px;
+        padding-right: 3px;
     }
 
     .editorItem {
         border: 1px solid rgba(217, 197, 178, 0.16);
         border-radius: 11px;
-        padding: 8px;
+        padding: 9px;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 7px;
         background: rgba(31, 27, 24, 0.52);
     }
 
@@ -1136,20 +1503,20 @@
     }
 
     .editorItemTop strong {
-        font-size: 11px;
+        font-size: 11.5px;
         color: rgba(239, 228, 214, 0.92);
     }
 
     .editorItemActions {
         display: flex;
-        gap: 5px;
+        gap: 6px;
         flex-wrap: wrap;
     }
 
     .editorItemActions button {
-        height: 27px;
-        padding: 0 8px;
-        font-size: 10.5px;
+        height: 29px;
+        padding: 0 10px;
+        font-size: 11px;
         border-radius: 8px;
         border: 1px solid rgba(217, 197, 178, 0.2);
         background: rgba(217, 197, 178, 0.08);
@@ -1157,20 +1524,20 @@
 
     .editorItem input,
     .editorItem select {
-        height: 30px;
+        height: 32px;
         border: 1px solid rgba(217, 197, 178, 0.2);
         background: rgba(31, 27, 24, 0.76);
         color: var(--vios-white-92);
         border-radius: 8px;
-        padding: 3px 8px;
-        font-size: 11.5px;
+        padding: 5px 9px;
+        font-size: 12px;
     }
 
     #editorStatus {
-        font-size: 10.5px;
+        font-size: 11px;
         color: rgba(236, 224, 210, 0.8);
-        min-height: 16px;
-        padding: 7px 2px 0;
+        min-height: 18px;
+        padding: 9px 2px 1px;
         border-top: 1px solid rgba(217, 197, 178, 0.16);
     }
 
@@ -1185,7 +1552,7 @@
     }
 
     #validationSummary {
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 600;
         color: rgba(230, 214, 197, 0.95);
     }
@@ -1203,8 +1570,8 @@
         padding-left: 16px;
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        font-size: 10.5px;
+        gap: 3px;
+        font-size: 11px;
         line-height: 1.35;
     }
 
@@ -1222,12 +1589,13 @@
     }
 
     .editorHint {
-        font-size: 10.5px;
+        font-size: 11px;
         color: rgba(232, 219, 204, 0.72);
+        line-height: 1.45;
     }
 
     #selectedHotspotPos {
-        font-size: 10.5px;
+        font-size: 11px;
         color: rgba(232, 219, 204, 0.74);
         min-height: 14px;
     }
@@ -1325,6 +1693,11 @@
             left: calc(8px + var(--safe-left));
             top: calc(64px + var(--safe-top));
             width: min(360px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #editorRestoreChip {
+            left: calc(8px + var(--safe-left));
+            top: calc(64px + var(--safe-top));
         }
 
         #help {
@@ -1426,6 +1799,11 @@
             top: calc(66px + var(--safe-top));
         }
 
+        #editorRestoreChip {
+            left: calc(10px + var(--safe-left));
+            top: calc(66px + var(--safe-top));
+        }
+
         #hotspotInfoCard {
             right: calc(10px + var(--safe-right));
             bottom: calc(112px + var(--safe-bottom));
@@ -1479,6 +1857,30 @@
     }
 
     @media (max-width: 680px) {
+        #loadingCard {
+            width: min(94vw, 468px);
+            padding: 16px 14px 13px;
+            gap: 9px;
+        }
+
+        #loadingTitle {
+            font-size: 19px;
+        }
+
+        #loadingMetaRow {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        #loadingHint {
+            text-align: left;
+        }
+
+        #editorContextStrip {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         #actions {
             width: min(320px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
             display: grid;
@@ -1512,14 +1914,10 @@
             justify-content: stretch;
         }
 
-        #modeToggle #orbitBtn {
-            display: none;
-        }
-
-        #modeToggle #walkBtn {
-            width: 100%;
+        #modeToggle button {
+            flex: 1 1 0;
             min-width: 0;
-            padding: 0 8px;
+            padding: 0 6px;
         }
 
         #hotspotInfoCard {
@@ -1538,6 +1936,19 @@
 
         #topBar.edit-mode #editorRibbonGroup {
             gap: 6px;
+        }
+
+        #editorPanel.collapsed {
+            width: min(242px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+        }
+
+        #editorRestoreChip {
+            left: calc(8px + var(--safe-left));
+            top: calc(64px + var(--safe-top));
+            max-width: min(242px, calc(100vw - 16px - var(--safe-left) - var(--safe-right)));
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 
@@ -1675,13 +2086,20 @@
         <video id="introVideo" src="/assets/ui/vios-intro.mp4" autoplay muted playsinline preload="auto"></video>
         <button id="introPlayBtn" type="button" hidden>Tap to start</button>
         <div id="loadingCard">
-            <div id="loadingBrand">VIOS</div>
+            <div id="loadingBrandRow">
+                <div id="loadingBrand">VIOS</div>
+                <div id="loadingPhase">Preparing Experience</div>
+            </div>
             <div id="loadingTitle">Loading tour...</div>
             <div id="loadingStatus">Preparing 3D experience...</div>
             <div id="loadingProgressWrap">
                 <div id="loadingProgressBar"></div>
             </div>
-            <div id="loadingPercent">0%</div>
+            <div id="loadingMetaRow">
+                <div id="loadingPercent">0%</div>
+                <div id="loadingHint">Streaming model data...</div>
+            </div>
+            <div id="loadingErrorHint" hidden></div>
             <div id="loadingErrorActions" hidden>
                 <button id="reloadBtn" type="button">Reload</button>
                 <button id="loadDefaultBtn" type="button" hidden>Load default tour</button>
@@ -1728,6 +2146,7 @@
                         <div id="editorRibbonUtils">
                             <button id="undoBtn" type="button" disabled>Undo</button>
                             <button id="redoBtn" type="button" disabled>Redo</button>
+                            <button id="minimizeEditorBtn" type="button">Minimize</button>
                             <button id="exitEditorBtn" type="button">Exit editor</button>
                         </div>
                         <div id="editorRibbonStatus">
@@ -1747,8 +2166,9 @@
                 <div id="actions">
                     <button id="viewsBtn" type="button" hidden>Views</button>
                     <div id="modeToggle" role="group" aria-label="Navigation mode">
-                        <button id="orbitBtn" type="button">Orbit</button>
+                        <button id="orbitBtn" type="button" hidden aria-hidden="true" tabindex="-1">Orbit</button>
                         <button id="walkBtn" type="button">Walk</button>
+                        <button id="flyBtn" type="button" hidden aria-hidden="true" tabindex="-1">Fly</button>
                     </div>
                     <button id="ctaBtn" type="button">CTA</button>
                 </div>
@@ -1805,6 +2225,7 @@
         </div>
 
         <div id="viewsPanel" class="panel" hidden></div>
+        <button id="editorRestoreChip" type="button" class="panel" hidden>Editor minimized &middot; Reopen</button>
         <div id="hotspotInfoCard" class="panel" aria-live="polite" aria-atomic="true">
             <div id="hotspotInfoEyebrow"></div>
             <div id="hotspotInfoTitle"></div>
@@ -1813,36 +2234,54 @@
         </div>
         <div id="editorPanel" class="panel" hidden>
             <div id="editorBody">
-                <details id="editorSectionHotspots" class="editorSection editorSection--primary" open>
-                    <summary>Hotspots</summary>
+                <div id="editorContextStrip">
+                    <div class="editorContextChip"><span class="chipLabel">Editor</span><span class="chipValue" id="editorContextActive">Active</span></div>
+                    <div class="editorContextChip"><span class="chipLabel">Tour</span><span class="chipValue" id="editorContextTour">--</span></div>
+                    <div class="editorContextChip"><span class="chipLabel">Model</span><span class="chipValue" id="editorContextModel">--</span></div>
+                    <div class="editorContextChip"><span class="chipLabel">Status</span><span class="chipValue" id="editorContextStatus">Draft</span></div>
+                    <div class="editorContextChip"><span class="chipLabel">Mode</span><span class="chipValue" id="editorContextMode">Walk</span></div>
+                    <div class="editorContextChip"><span class="chipLabel">Collision</span><span class="chipValue" id="editorContextCollision">Checking...</span></div>
+                </div>
+                <details id="editorSectionContext" class="editorSection editorSection--primary" open>
+                    <summary>Context</summary>
                     <div class="editorSectionBody">
-                        <div id="editorSnapWrap">
-                            <label>
-                                <input id="snapYToggle" type="checkbox">
-                                Snap to ground (Y)
-                            </label>
-                            <input id="snapYValue" type="number" step="0.1" value="0">
+                        <p class="editorSectionIntro">Follow the authoring path: choose a source, configure content, then validate and prepare publish artifacts.</p>
+                        <div class="workflowGuide" aria-label="Authoring workflow">
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">1. Choose Source</div>
+                                <div class="workflowStepBody">Open an existing tour or create a new draft from a model registry entry.</div>
+                            </div>
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">2. Configure</div>
+                                <div class="workflowStepBody">Edit metadata, presets, hotspots, and collision settings for this tour draft.</div>
+                            </div>
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">3. Validate + Publish Prep</div>
+                                <div class="workflowStepBody">Resolve validation issues, run publish prep, then export `tour.json` and registry artifacts.</div>
+                            </div>
                         </div>
-                        <div id="hotspotEditorHint" class="editorHint">Select a hotspot to edit</div>
-                        <div id="editorHotspotList" class="editorList"></div>
-                        <div id="selectedHotspotPos">Selected XYZ: --</div>
-                    </div>
-                </details>
-
-                <details id="editorSectionPresets" class="editorSection editorSection--primary">
-                    <summary>Camera Presets</summary>
-                    <div class="editorSectionBody">
-                        <div id="presetEditorHint" class="editorHint">Select a view to rename or set default</div>
-                        <div id="editorPresetList" class="editorList"></div>
-                    </div>
-                </details>
-
-                <details id="editorSectionExport" class="editorSection editorSection--secondary">
-                    <summary>Export</summary>
-                    <div class="editorSectionBody">
-                        <div id="editorExportActions">
-                            <button id="copyConfigBtn" type="button">Copy Config JSON</button>
-                            <button id="downloadConfigBtn" type="button">Download Config</button>
+                        <div id="editorContextGrid">
+                            <div class="editorMetaField editorMetaFieldContent contextActionCard">
+                                <label for="metaOpenTourSelect">Open Existing Tour</label>
+                                <p class="editorFieldHint">Loads the selected `tour.json` draft in editor mode for updates.</p>
+                                <div class="editorMetaContentRow">
+                                    <select id="metaOpenTourSelect" aria-label="Open existing tour">
+                                        <option value="">Loading tours...</option>
+                                    </select>
+                                    <button id="metaOpenTourBtn" type="button" disabled>Open tour</button>
+                                </div>
+                            </div>
+                            <div class="editorMetaField editorMetaFieldContent contextActionCard">
+                                <label for="metaNewModelSelect">Create New Draft From Model</label>
+                                <p class="editorFieldHint">Starts a new draft (`?new=1&model=...`) from the selected model registry entry.</p>
+                                <div class="editorMetaContentRow">
+                                    <select id="metaNewModelSelect" aria-label="Create new tour from model">
+                                        <option value="">Loading models...</option>
+                                    </select>
+                                    <button id="metaCreateTourBtn" type="button" disabled>New from model</button>
+                                </div>
+                            </div>
+                            <div id="metaContentHint" class="editorHint">Loading content registry...</div>
                         </div>
                     </div>
                 </details>
@@ -1850,23 +2289,8 @@
                 <details id="editorSectionMetadata" class="editorSection editorSection--secondary">
                     <summary>Metadata</summary>
                     <div class="editorSectionBody">
+                        <p class="editorSectionIntro">Edit listing and publish metadata for this walking tour.</p>
                         <div id="editorMetaGrid">
-                            <div class="editorMetaField editorMetaFieldContent">
-                                <label>Content</label>
-                                <div class="editorMetaContentRow">
-                                    <select id="metaOpenTourSelect" aria-label="Open existing tour">
-                                        <option value="">Loading tours...</option>
-                                    </select>
-                                    <button id="metaOpenTourBtn" type="button" disabled>Open tour</button>
-                                </div>
-                                <div class="editorMetaContentRow">
-                                    <select id="metaNewModelSelect" aria-label="Create new tour from model">
-                                        <option value="">Loading models...</option>
-                                    </select>
-                                    <button id="metaCreateTourBtn" type="button" disabled>New from model</button>
-                                </div>
-                                <div id="metaContentHint" class="editorHint">Loading content registry...</div>
-                            </div>
                             <div class="editorMetaField">
                                 <label for="metaTourStatus">Tour status</label>
                                 <select id="metaTourStatus">
@@ -1884,16 +2308,6 @@
                                     <div id="metaViewerUrl" class="editorMetaReadonly">Unavailable</div>
                                     <button id="metaCopyViewerUrlBtn" type="button">Copy URL</button>
                                 </div>
-                            </div>
-                            <div class="editorMetaField editorMetaFieldContent">
-                                <label>Publish prep</label>
-                                <div class="editorMetaContentRow editorMetaContentRowWrap">
-                                    <button id="metaPublishBtn" type="button">Publish prep</button>
-                                    <button id="metaCopyRegistryBtn" type="button" disabled>Copy registry JSON</button>
-                                    <button id="metaDownloadRegistryBtn" type="button" disabled>Download registry JSON</button>
-                                    <button id="metaDownloadPublishBundleBtn" type="button">Download publish bundle</button>
-                                </div>
-                                <div id="metaPublishHint" class="editorHint">Publish-ready artifacts stay file-based in this pass.</div>
                             </div>
                             <div class="editorMetaField">
                                 <label for="metaUpdatedBy">Updated by</label>
@@ -1947,6 +2361,63 @@
                     </div>
                 </details>
 
+                <details id="editorSectionCollision" class="editorSection editorSection--secondary">
+                    <summary>Collision</summary>
+                    <div class="editorSectionBody">
+                        <p class="editorSectionIntro">Published viewer runtime is fixed to Walk with collision enforced when available. Editor runtime can tune collision per mode.</p>
+                        <div id="collisionWrap" class="sliderWrap">
+                            <div id="collisionMetaRow">
+                                <span>Collision Availability</span>
+                                <span id="collisionAvailabilityTag">Unavailable</span>
+                            </div>
+                            <div id="collisionEffective">Effective (walk): OFF</div>
+                            <div id="collisionReason">Requested (walk): OFF | uninitialized</div>
+                            <div id="collisionPolicy">Active runtime mode: Walk.</div>
+                            <div id="collisionEditorModesWrap">
+                                <div class="collisionModeHeader">Editor collision profile</div>
+                                <label class="collisionModeToggle">
+                                    <input id="collisionEditorOrbitToggle" type="checkbox">
+                                    <span>Orbit collision</span>
+                                </label>
+                                <label class="collisionModeToggle">
+                                    <input id="collisionEditorWalkToggle" type="checkbox">
+                                    <span>Walk collision</span>
+                                </label>
+                                <label class="collisionModeToggle">
+                                    <input id="collisionEditorFlyToggle" type="checkbox">
+                                    <span>Fly collision</span>
+                                </label>
+                            </div>
+                            <div id="collisionViewerContract">Published viewer contract: Orbit OFF, Walk ON (when available), Fly OFF.</div>
+                            <span id="collisionHint" hidden>Collision unavailable.</span>
+                        </div>
+                    </div>
+                </details>
+
+                <details id="editorSectionPresets" class="editorSection editorSection--primary">
+                    <summary>Camera Presets</summary>
+                    <div class="editorSectionBody">
+                        <div id="presetEditorHint" class="editorHint">Select a view to rename or set default.</div>
+                        <div id="editorPresetList" class="editorList"></div>
+                    </div>
+                </details>
+
+                <details id="editorSectionHotspots" class="editorSection editorSection--primary">
+                    <summary>Hotspots</summary>
+                    <div class="editorSectionBody">
+                        <div id="editorSnapWrap">
+                            <label>
+                                <input id="snapYToggle" type="checkbox">
+                                Snap to ground (Y)
+                            </label>
+                            <input id="snapYValue" type="number" step="0.1" value="0">
+                        </div>
+                        <div id="hotspotEditorHint" class="editorHint">Select a hotspot to edit.</div>
+                        <div id="editorHotspotList" class="editorList"></div>
+                        <div id="selectedHotspotPos">Selected XYZ: --</div>
+                    </div>
+                </details>
+
                 <details id="editorSectionValidation" class="editorSection editorSection--secondary">
                     <summary>Validation</summary>
                     <div class="editorSectionBody">
@@ -1954,6 +2425,70 @@
                             <div id="validationSummary" class="editorHint">All good</div>
                             <ul id="validationErrors" class="validationList" hidden></ul>
                             <ul id="validationWarnings" class="validationList" hidden></ul>
+                        </div>
+                    </div>
+                </details>
+
+                <details id="editorSectionExport" class="editorSection editorSection--secondary">
+                    <summary>Export / Publish</summary>
+                    <div class="editorSectionBody">
+                        <p class="editorSectionIntro">Use this stage to export `tour.json`, generate registry updates, and package file-based publish artifacts.</p>
+                        <div class="workflowGuide" aria-label="Export workflow">
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">1. Export `tour.json`</div>
+                                <div class="workflowStepBody">Export the per-tour configuration used by the viewer for this single property.</div>
+                            </div>
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">2. Run Publish Prep</div>
+                                <div class="workflowStepBody">Auto-sets status to published for generated outputs and prepares updated `tours.registry.json` payload.</div>
+                            </div>
+                            <div class="workflowStep">
+                                <div class="workflowStepTitle">3. Handoff Artifacts</div>
+                                <div class="workflowStepBody">Copy/download registry JSON and optional publish bundle zip for deployment handoff.</div>
+                            </div>
+                        </div>
+                        <div id="publishStateGrid">
+                            <div class="publishStateCell">
+                                <div class="publishStateLabel">Tour Status</div>
+                                <div id="publishStateTourStatus" class="publishStateValue">Draft</div>
+                            </div>
+                            <div class="publishStateCell">
+                                <div class="publishStateLabel">Validation</div>
+                                <div id="publishStateValidation" class="publishStateValue">Checking...</div>
+                            </div>
+                            <div class="publishStateCell">
+                                <div class="publishStateLabel">Prep State</div>
+                                <div id="publishStatePrep" class="publishStateValue">Idle</div>
+                            </div>
+                        </div>
+                        <div id="exportWorkflowSummary" class="editorHint" data-prep-state="idle">Publish prep not run yet.</div>
+                        <ul class="artifactGuide" aria-label="Artifact guide">
+                            <li><code>tour.json</code>: single-tour runtime config for one tour.</li>
+                            <li><code>tours.registry.json</code>: index used to discover tours.</li>
+                            <li>Publish bundle zip: portable package with config + registry + manifest.</li>
+                            <li>Viewer URL: share/use link target, not a bundled file artifact.</li>
+                        </ul>
+                        <div class="editorMetaField editorMetaFieldContent exportStageCard">
+                            <label>Stage 1: Tour Config (`tour.json`)</label>
+                            <div id="editorExportActions">
+                                <button id="copyConfigBtn" type="button">Copy `tour.json`</button>
+                                <button id="downloadConfigBtn" type="button">Download `tour.json`</button>
+                            </div>
+                        </div>
+                        <div class="editorMetaField editorMetaFieldContent exportStageCard">
+                            <label>Stage 2: Publish Prep</label>
+                            <div class="editorMetaContentRow">
+                                <button id="metaPublishBtn" type="button">Run publish prep</button>
+                            </div>
+                            <div id="metaPublishHint" class="editorHint">Publish-ready artifacts stay file-based in this pass.</div>
+                        </div>
+                        <div class="editorMetaField editorMetaFieldContent exportStageCard">
+                            <label>Stage 3: Publish Artifacts</label>
+                            <div class="editorMetaContentRow editorMetaContentRowWrap">
+                                <button id="metaCopyRegistryBtn" type="button" disabled>Copy `tours.registry.json`</button>
+                                <button id="metaDownloadRegistryBtn" type="button" disabled>Download `tours.registry.json`</button>
+                                <button id="metaDownloadPublishBundleBtn" type="button">Download publish bundle (.zip)</button>
+                            </div>
                         </div>
                     </div>
                 </details>
@@ -1987,6 +2522,7 @@
             isValidTourSlug,
             loadContentRegistries,
             loadTourConfigFromLocation,
+            normalizeTourCollisionConfig,
             normalizeTourSlug,
             normalizeTourStatus,
             normalizeRuntimeTourConfig,
@@ -1999,8 +2535,20 @@
             animateCameraToPreset,
             applyStartupViewOnceState
         } from './app/engine/camera-startup.js';
+        import { applyCollisionCorrection, applyFrameCollisionCorrection } from './app/engine/collision-resolver.js';
         import { createHotspotEngine } from './app/engine/hotspots-engine.js';
         import { createViewerEngine } from './app/engine/viewer-engine.js';
+        import { createNavigationEvents } from './app/navigation/navigation-events.js';
+        import { createNavigationController } from './app/navigation/navigation-controller.js';
+        import { applyMovementStep } from './app/navigation/movement-resolver.js';
+        import { VIOS_NAV_FEEL_TUNING } from './app/navigation/navigation-feel-config.js';
+        import { buildViewDefinitionsFromPresets } from './app/navigation/location-resolver.js';
+        import {
+            createNavigationRuntimeState,
+            NAV_COLLISION_STATUS,
+            NAV_MODES
+        } from './app/navigation/navigation-types.js';
+        import { NAVIGATION_MOVEMENT_KEY_CODES, createMoveKeyTracker, getKeyInputContext } from './app/input/navigation-input.js';
         import { createViewerStore } from './app/state/viewer-store.js';
         import { createLoadingUi } from './app/ui/loading-ui.js';
         import { createOnboardingUi } from './app/ui/onboarding-ui.js';
@@ -2018,6 +2566,7 @@
         const rotInfo = document.getElementById('rotInfo');
         const orbitBtn = document.getElementById('orbitBtn');
         const walkBtn = document.getElementById('walkBtn');
+        const flyBtn = document.getElementById('flyBtn');
         const homeBtn = document.getElementById('homeBtn');
         const resetBtn = document.getElementById('resetBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -2037,9 +2586,11 @@
         const moreHomeBtn = document.getElementById('moreHomeBtn');
         const moreHelpBtn = document.getElementById('moreHelpBtn');
         const editorPanel = document.getElementById('editorPanel');
+        const editorRestoreChip = document.getElementById('editorRestoreChip');
         const editorRibbonGroup = document.getElementById('editorRibbonGroup');
         const addHotspotBtn = document.getElementById('addHotspotBtn');
         const saveViewBtn = document.getElementById('saveViewBtn');
+        const minimizeEditorBtn = document.getElementById('minimizeEditorBtn');
         const copyConfigBtn = document.getElementById('copyConfigBtn');
         const downloadConfigBtn = document.getElementById('downloadConfigBtn');
         const metaUpdatedBy = document.getElementById('metaUpdatedBy');
@@ -2068,6 +2619,10 @@
         const metaDownloadRegistryBtn = document.getElementById('metaDownloadRegistryBtn');
         const metaDownloadPublishBundleBtn = document.getElementById('metaDownloadPublishBundleBtn');
         const metaPublishHint = document.getElementById('metaPublishHint');
+        const exportWorkflowSummary = document.getElementById('exportWorkflowSummary');
+        const publishStateTourStatus = document.getElementById('publishStateTourStatus');
+        const publishStateValidation = document.getElementById('publishStateValidation');
+        const publishStatePrep = document.getElementById('publishStatePrep');
         const validationSummary = document.getElementById('validationSummary');
         const validationErrors = document.getElementById('validationErrors');
         const validationWarnings = document.getElementById('validationWarnings');
@@ -2081,12 +2636,20 @@
         const redoBtn = document.getElementById('redoBtn');
         const editorDirty = document.getElementById('editorDirty');
         const editorStatus = document.getElementById('editorStatus');
+        const editorContextActive = document.getElementById('editorContextActive');
+        const editorContextTour = document.getElementById('editorContextTour');
+        const editorContextModel = document.getElementById('editorContextModel');
+        const editorContextStatus = document.getElementById('editorContextStatus');
+        const editorContextMode = document.getElementById('editorContextMode');
+        const editorContextCollision = document.getElementById('editorContextCollision');
         const selectedHotspotPos = document.getElementById('selectedHotspotPos');
         const exitEditorBtn = document.getElementById('exitEditorBtn');
+        const editorSectionContext = document.getElementById('editorSectionContext');
         const editorSectionHotspots = document.getElementById('editorSectionHotspots');
         const editorSectionPresets = document.getElementById('editorSectionPresets');
         const editorSectionExport = document.getElementById('editorSectionExport');
         const editorSectionMetadata = document.getElementById('editorSectionMetadata');
+        const editorSectionCollision = document.getElementById('editorSectionCollision');
         const editorSectionValidation = document.getElementById('editorSectionValidation');
         const helpBtn = document.getElementById('helpBtn');
         const ctaBtn = document.getElementById('ctaBtn');
@@ -2105,15 +2668,28 @@
         const qualitySelect = document.getElementById('qualitySelect');
         const autoPerfToggle = document.getElementById('autoPerfToggle');
         const perfModeToggle = document.getElementById('perfModeToggle');
+        const collisionWrap = document.getElementById('collisionWrap');
+        const collisionAvailabilityTag = document.getElementById('collisionAvailabilityTag');
+        const collisionEffective = document.getElementById('collisionEffective');
+        const collisionReason = document.getElementById('collisionReason');
+        const collisionPolicy = document.getElementById('collisionPolicy');
+        const collisionEditorModesWrap = document.getElementById('collisionEditorModesWrap');
+        const collisionEditorOrbitToggle = document.getElementById('collisionEditorOrbitToggle');
+        const collisionEditorWalkToggle = document.getElementById('collisionEditorWalkToggle');
+        const collisionEditorFlyToggle = document.getElementById('collisionEditorFlyToggle');
+        const collisionHint = document.getElementById('collisionHint');
         const fpsMeter = document.getElementById('fpsMeter');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingMedia = document.getElementById('loadingMedia');
         const introVideo = document.getElementById('introVideo');
         const introPlayBtn = document.getElementById('introPlayBtn');
         const loadingTitle = document.getElementById('loadingTitle');
+        const loadingPhase = document.getElementById('loadingPhase');
         const loadingStatus = document.getElementById('loadingStatus');
         const loadingProgressBar = document.getElementById('loadingProgressBar');
         const loadingPercent = document.getElementById('loadingPercent');
+        const loadingHint = document.getElementById('loadingHint');
+        const loadingErrorHint = document.getElementById('loadingErrorHint');
         const loadingErrorActions = document.getElementById('loadingErrorActions');
         const reloadBtn = document.getElementById('reloadBtn');
         const loadDefaultBtn = document.getElementById('loadDefaultBtn');
@@ -2136,13 +2712,15 @@
             onboardingStepIndex: 0,
             editorDirty: false,
             editorStatus: '',
+            editorPanelCollapsed: false,
             selectedHotspotId: '',
             selectedPresetId: '',
             hotspotPlacementMode: false,
             loadingMaxPercent: 0,
             loadingOverlayHidden: false,
             introHidden: false,
-            mode: 'orbit'
+            mode: NAV_MODES.WALK,
+            navigation: createNavigationRuntimeState({ mode: NAV_MODES.WALK })
         });
 
         const loadDefaultTour = () => {
@@ -2167,6 +2745,7 @@
                 viewsBtn,
                 orbitBtn,
                 walkBtn,
+                flyBtn,
                 heightWrap,
                 heightSlider,
                 heightValue
@@ -2194,13 +2773,38 @@
                 suppressMs: open ? IDLE_INTERACTION_SUPPRESS_MS : 0
             });
         };
+        const setEditorPanelCollapsed = (collapsed, { source = 'ui' } = {}) => {
+            if (!editEnabled) return;
+            editorPanelCollapsed = collapsed === true;
+            editorPanel.classList.toggle('collapsed', editorPanelCollapsed);
+            editorRestoreChip.hidden = !editorPanelCollapsed;
+            minimizeEditorBtn.textContent = editorPanelCollapsed ? 'Expand' : 'Minimize';
+            minimizeEditorBtn.setAttribute('aria-expanded', editorPanelCollapsed ? 'false' : 'true');
+            minimizeEditorBtn.classList.toggle('active', editorPanelCollapsed);
+            viewerStore.setState({ editorPanelCollapsed });
+            syncEditorWorkspaceDock();
+            if (typeof updateEditorContextUi === 'function') updateEditorContextUi();
+            registerViewerActivity({
+                suppressMs: IDLE_INTERACTION_SUPPRESS_MS
+            });
+            if (source === 'ui') {
+                const actionLabel = editorPanelCollapsed ? 'Editor panel minimized.' : 'Editor panel restored.';
+                setEditorStatus(actionLabel);
+            }
+        };
+        const toggleEditorPanelCollapsed = () => {
+            setEditorPanelCollapsed(!editorPanelCollapsed, { source: 'ui' });
+        };
         const loadingUi = createLoadingUi({
             elements: {
                 loadingOverlay,
                 loadingTitle,
+                loadingPhase,
                 loadingStatus,
                 loadingProgressBar,
                 loadingPercent,
+                loadingHint,
+                loadingErrorHint,
                 loadingErrorActions,
                 loadDefaultBtn,
                 reloadBtn,
@@ -2308,7 +2912,7 @@
             rotationDeg,
             queryFov,
             initialFov,
-            startModeConfig,
+            collisionConfig,
             ctaLabel,
             ctaUrl,
             propertyCard,
@@ -2349,6 +2953,44 @@
             if (typeof value === 'boolean') return value ? 'true' : 'false';
             return '';
         };
+        const normalizeCollisionProfiles = (input = {}) => (
+            normalizeTourCollisionConfig(input)
+        );
+        const initialCollisionProfiles = normalizeCollisionProfiles(collisionConfig);
+        const initialViewerCollisionModes = {
+            ...initialCollisionProfiles.viewerModes
+        };
+        const initialEditorCollisionModes = {
+            ...initialCollisionProfiles.editorModes
+        };
+        const normalizeBlockerVolume = (entry) => {
+            if (!entry || typeof entry !== 'object') return null;
+            const id = normalizeCardText(entry.id);
+            if (!id) return null;
+            const parseVec = (input) => (
+                Array.isArray(input)
+                && input.length >= 3
+                && input.every((value) => Number.isFinite(Number(value)))
+                    ? [Number(input[0]), Number(input[1]), Number(input[2])]
+                    : null
+            );
+            const min = parseVec(entry.min);
+            const max = parseVec(entry.max);
+            if (!min || !max) return null;
+            return {
+                id,
+                type: normalizeCardText(entry.type) || 'aabb',
+                enabled: entry.enabled !== false,
+                min,
+                max,
+                ...(entry.meta && typeof entry.meta === 'object' ? { meta: JSON.parse(JSON.stringify(entry.meta)) } : {})
+            };
+        };
+        const boundaryBlockers = Array.isArray(sourceTourConfig?.navigation?.boundaries?.blockers)
+            ? sourceTourConfig.navigation.boundaries.blockers
+                .map((entry) => normalizeBlockerVolume(entry))
+                .filter(Boolean)
+            : [];
         const normalizePropertyStats = ({ rooms, area } = {}) => {
             const stats = [];
             const pushStat = (label, value) => {
@@ -2402,14 +3044,20 @@
         let changeSummary = isNonEmptyString(sourceTourConfig.changeSummary) ? sourceTourConfig.changeSummary : '';
         let tourSlugDraft = initialTourSlug;
         let tourStatusDraft = initialTourStatus;
+        let viewerCollisionModesDraft = { ...initialViewerCollisionModes };
+        let editorCollisionModesDraft = { ...initialEditorCollisionModes };
         let publishRegistryPayloadText = '';
-        let publishHintText = 'Publish-ready artifacts stay file-based in this pass.';
         let propertyTitleDraft = propertyCardState.title;
         let propertyAddressDraft = propertyCardState.address;
         let propertyPriceDraft = propertyCardState.price;
         let propertyRoomsDraft = propertyCardState.rooms;
         let propertyAreaDraft = propertyCardState.area;
         const rotationDraft = {
+            rx: Number(rotationDeg.rx),
+            ry: Number(rotationDeg.ry),
+            rz: Number(rotationDeg.rz)
+        };
+        const baseLoadRotationDeg = {
             rx: Number(rotationDeg.rx),
             ry: Number(rotationDeg.ry),
             rz: Number(rotationDeg.rz)
@@ -2425,6 +3073,7 @@
         });
         let defaultPresetId = normalizedDefaultPresetId;
         let editorDirtyState = false;
+        let editorPanelCollapsed = false;
         let hotspotPlacementMode = false;
         let selectedHotspotId = '';
         let selectedPresetId = '';
@@ -2447,7 +3096,8 @@
             selectedHotspotId,
             selectedPresetId,
             hotspotPlacementMode,
-            editorDirty: editorDirtyState
+            editorDirty: editorDirtyState,
+            editorPanelCollapsed
         });
         let lastIdleGuardFlags = {
             settingsOpen: false,
@@ -2486,23 +3136,31 @@
             store: viewerStore
         });
         const editorAccordionSections = {
-            hotspots: editorSectionHotspots,
-            presets: editorSectionPresets,
-            export: editorSectionExport,
+            context: editorSectionContext,
             metadata: editorSectionMetadata,
-            validation: editorSectionValidation
+            collision: editorSectionCollision,
+            presets: editorSectionPresets,
+            hotspots: editorSectionHotspots,
+            validation: editorSectionValidation,
+            export: editorSectionExport
         };
         let isEditorAccordionSyncing = false;
-        let activeEditorSectionKey = 'hotspots';
+        let activeEditorSectionKey = 'context';
 
-        if (introEnabled) loadingOverlay.classList.add('intro-active');
+        loadingOverlay.classList.toggle('intro-active', introEnabled);
         renderPropertyCard();
-        loadingTitle.textContent = TOUR_TITLE;
+        loadingTitle.textContent = TOUR_TITLE || 'Preparing Tour Experience';
         updateRotationInfoLabel();
         ctaBtn.textContent = ctaLabel;
         viewsBtn.hidden = cameraPresets.length === 0;
         editorPanel.hidden = !editEnabled;
         editorRibbonGroup.hidden = !editEnabled;
+        collisionWrap.hidden = !editEnabled;
+        editorRestoreChip.hidden = true;
+        editorPanel.classList.remove('collapsed');
+        minimizeEditorBtn.textContent = 'Minimize';
+        minimizeEditorBtn.setAttribute('aria-expanded', 'true');
+        collisionHint.hidden = true;
         topBar.classList.toggle('edit-mode', editEnabled);
         syncEditorWorkspaceDock();
         requestAnimationFrame(syncEditorWorkspaceDock);
@@ -2521,16 +3179,6 @@
             thumb.src = THUMB_URL;
         }
 
-        const rawFetch = window.fetch.bind(window);
-        window.fetch = (input, init) => {
-            const url = typeof input === 'string' ? input : input?.url;
-            if (url && /\/collision\.lci(\?|$)/.test(url)) {
-                console.warn('Ignoring missing collision.lci');
-                return Promise.resolve(new Response(new ArrayBuffer(0), { status: 200, statusText: 'OK' }));
-            }
-            return rawFetch(input, init);
-        };
-
         const scene = new THREE.Scene();
 
         let qualityMode = qualitySelect.value;
@@ -2542,7 +3190,12 @@
         renderer.setClearColor(0x000000);
         document.body.appendChild(renderer.domElement);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 150000);
+        const camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            VIOS_NAV_FEEL_TUNING.camera.initialNear,
+            150000
+        );
         camera.fov = THREE.MathUtils.clamp(initialFov, 35, 90);
         camera.up.set(0, 1, 0);
         camera.position.set(0, 2, 0);
@@ -2559,26 +3212,322 @@
         controls.update();
 
         const walkControls = new PointerLockControls(camera, renderer.domElement);
-        const moveKeys = new Set();
+        const moveKeyTracker = createMoveKeyTracker({
+            movementKeyCodes: NAVIGATION_MOVEMENT_KEY_CODES
+        });
+        const moveKeys = moveKeyTracker.moveKeys;
         const clock = new THREE.Clock();
         const fitDirection = new THREE.Vector3(1, 0.35, 1).normalize();
         let lastBounds = null;
         let maxLoadingPercent = 0;
         let sceneReady = false;
         let startupViewApplied = false;
-        const MODES = { ORBIT: 'orbit', WALK: 'walk' };
-        const MOVEMENT_KEY_CODES = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'Space', 'KeyC']);
-        let mode = MODES.ORBIT;
+        const MODES = {
+            ORBIT: NAV_MODES.ORBIT,
+            WALK: NAV_MODES.WALK,
+            FLY: NAV_MODES.FLY
+        };
         let lccObj = null;
-        const WALK_HELP = 'WASD move | Mouse look | Space/C up/down | Shift sprint';
+        let hasWarnedMissingCollision = false;
+        let lastSafeWalkPosition = null;
+        const WALK_ENTRY_SUPPORT_NORMAL_MIN_DOT = 0.45;
+        const WALK_ENTRY_OVERHEAD_REJECT_MARGIN = 0.25;
+        const WALK_ENTRY_PROBE_HEIGHT_PAD = 2.25;
+        const COLLISION_CAPSULE_CONFIG = Object.freeze({
+            ...VIOS_NAV_FEEL_TUNING.collision.capsule
+        });
+        const clampWalkHeightToSliderRange = (value) => {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return camera.position.y;
+            const min = Number(heightSlider.min);
+            const max = Number(heightSlider.max);
+            if (Number.isFinite(min) && Number.isFinite(max) && max >= min) {
+                return THREE.MathUtils.clamp(numeric, min, max);
+            }
+            if (Number.isFinite(min)) return Math.max(min, numeric);
+            if (Number.isFinite(max)) return Math.min(max, numeric);
+            return numeric;
+        };
+        const alignWalkEyeHeightToGround = () => {
+            const minSlider = Number(heightSlider.min);
+            const fallbackGround = Number.isFinite(minSlider)
+                ? minSlider
+                : (camera.position.y - VIOS_NAV_FEEL_TUNING.walk.defaultEyeHeight);
+            const groundY = Number.isFinite(Number(lastBounds?.min?.y))
+                ? Number(lastBounds.min.y)
+                : fallbackGround;
+            const nextY = clampWalkHeightToSliderRange(
+                groundY + VIOS_NAV_FEEL_TUNING.walk.defaultEyeHeight
+            );
+            camera.position.y = nextY;
+            lastSafeWalkPosition = camera.position.clone();
+            heightSlider.value = nextY.toFixed(2);
+            heightValue.textContent = Number(heightSlider.value).toFixed(2);
+        };
+        const translateCameraKeepingHeading = (nextPosition) => {
+            if (!nextPosition) return;
+            const delta = new THREE.Vector3().subVectors(nextPosition, camera.position);
+            camera.position.copy(nextPosition);
+            if (controls?.target && typeof controls.target.add === 'function') {
+                controls.target.add(delta);
+            }
+        };
+        const clearTransientMovementState = () => {
+            moveKeyTracker.clear();
+            if (draggingHotspotId) {
+                stopHotspotDrag();
+            }
+            if (walkControls?.isLocked) {
+                try {
+                    walkControls.unlock();
+                } catch {
+                    // best effort
+                }
+            }
+            navigationController?.stopMovement?.({ source: 'transition_clear' });
+        };
+        const resolveWalkEntryCandidate = () => {
+            const nextPosition = camera.position.clone();
+            const eyeHeight = VIOS_NAV_FEEL_TUNING.walk.defaultEyeHeight;
+            let minEyeY = -Infinity;
+            if (lastBounds?.min && lastBounds?.max) {
+                const hasBounds = ['x', 'y', 'z'].every((axis) => (
+                    Number.isFinite(Number(lastBounds.min[axis]))
+                    && Number.isFinite(Number(lastBounds.max[axis]))
+                ));
+                if (hasBounds) {
+                    const minX = Number(lastBounds.min.x) + 0.05;
+                    const maxX = Number(lastBounds.max.x) - 0.05;
+                    const minZ = Number(lastBounds.min.z) + 0.05;
+                    const maxZ = Number(lastBounds.max.z) - 0.05;
+                    if (maxX >= minX) nextPosition.x = THREE.MathUtils.clamp(nextPosition.x, minX, maxX);
+                    if (maxZ >= minZ) nextPosition.z = THREE.MathUtils.clamp(nextPosition.z, minZ, maxZ);
+                    minEyeY = Number(lastBounds.min.y) + eyeHeight;
+                    const maxEyeY = Number(lastBounds.max.y) + eyeHeight;
+                    if (!Number.isFinite(nextPosition.y) || nextPosition.y < minEyeY) {
+                        nextPosition.y = minEyeY;
+                    } else if (Number.isFinite(maxEyeY) && nextPosition.y > maxEyeY) {
+                        nextPosition.y = maxEyeY;
+                    }
+                }
+            }
+            nextPosition.y = clampWalkHeightToSliderRange(nextPosition.y);
+            return {
+                nextPosition,
+                minEyeY
+            };
+        };
+        const resolveWalkFloorSnap = ({
+            candidatePosition,
+            eyeHeight = VIOS_NAV_FEEL_TUNING.walk.defaultEyeHeight
+        } = {}) => {
+            const nextPosition = candidatePosition?.clone
+                ? candidatePosition.clone()
+                : camera.position.clone();
+            const fallbackGroundY = Number.isFinite(Number(lastBounds?.min?.y))
+                ? Number(lastBounds.min.y)
+                : (nextPosition.y - eyeHeight);
+            const fallbackEyeY = clampWalkHeightToSliderRange(fallbackGroundY + eyeHeight);
+            const hasCollisionData = typeof lccObj?.hasCollision === 'function'
+                ? lccObj.hasCollision() === true
+                : false;
+            if (!hasCollisionData || typeof lccObj?.intersectsRayFromOriginExt !== 'function') {
+                nextPosition.y = fallbackEyeY;
+                return {
+                    position: nextPosition,
+                    snapped: false,
+                    reason: hasCollisionData ? 'floor_snap_api_unavailable' : 'collision_unavailable'
+                };
+            }
+
+            const up = new THREE.Vector3().copy(camera.up);
+            if (up.lengthSq() <= 0.000001) up.set(0, 1, 0);
+            else up.normalize();
+            const probeOriginY = nextPosition.y + Math.max(eyeHeight, WALK_ENTRY_PROBE_HEIGHT_PAD);
+            const floorProbeMinY = Number.isFinite(Number(lastBounds?.min?.y))
+                ? Number(lastBounds.min.y) - Math.max(eyeHeight, 1.5)
+                : (nextPosition.y - Math.max(eyeHeight * 5, 10));
+            const maxDistance = Math.max(eyeHeight * 2, probeOriginY - floorProbeMinY);
+            let rayHit = null;
+            try {
+                rayHit = lccObj.intersectsRayFromOriginExt({
+                    origin: { x: nextPosition.x, y: probeOriginY, z: nextPosition.z },
+                    direction: { x: 0, y: -1, z: 0 },
+                    maxDistance
+                });
+            } catch {
+                nextPosition.y = fallbackEyeY;
+                return {
+                    position: nextPosition,
+                    snapped: false,
+                    reason: 'floor_snap_failed'
+                };
+            }
+            const hitPointY = Number(rayHit?.point?.y);
+            if (!Number.isFinite(hitPointY)) {
+                nextPosition.y = fallbackEyeY;
+                return {
+                    position: nextPosition,
+                    snapped: false,
+                    reason: 'floor_snap_no_hit'
+                };
+            }
+            const hitNormal = new THREE.Vector3(
+                Number(rayHit?.normal?.x) || 0,
+                Number(rayHit?.normal?.y) || 0,
+                Number(rayHit?.normal?.z) || 0
+            );
+            const hitNormalLenSq = hitNormal.lengthSq();
+            const supportDot = hitNormalLenSq > 0.000001
+                ? hitNormal.normalize().dot(up)
+                : -1;
+            // Floor selection: accept support-like upward normals and reject hits above
+            // the candidate eye position to avoid snapping onto overhead roof surfaces.
+            const supportLike = supportDot >= WALK_ENTRY_SUPPORT_NORMAL_MIN_DOT;
+            const overheadLike = hitPointY > (nextPosition.y + WALK_ENTRY_OVERHEAD_REJECT_MARGIN);
+            const belowCandidateBy = nextPosition.y - hitPointY;
+            const tooCloseBelowEye = belowCandidateBy < Math.max(0.35, eyeHeight * 0.2);
+            if (!supportLike || overheadLike || tooCloseBelowEye) {
+                nextPosition.y = fallbackEyeY;
+                return {
+                    position: nextPosition,
+                    snapped: false,
+                    reason: overheadLike
+                        ? 'floor_snap_overhead_rejected'
+                        : (tooCloseBelowEye ? 'floor_snap_too_close' : 'floor_snap_invalid_normal')
+                };
+            }
+            nextPosition.y = clampWalkHeightToSliderRange(hitPointY + eyeHeight);
+            return {
+                position: nextPosition,
+                snapped: true,
+                reason: 'floor_snapped'
+            };
+        };
+        const settleWalkCollision = ({ maxPasses = 2 } = {}) => {
+            const hasCollisionData = typeof lccObj?.hasCollision === 'function'
+                ? lccObj.hasCollision() === true
+                : false;
+            if (!hasCollisionData) {
+                return {
+                    ok: true,
+                    corrected: false,
+                    reason: 'collision_unavailable'
+                };
+            }
+            for (let pass = 0; pass < maxPasses; pass += 1) {
+                const correction = applyCollisionCorrection({
+                    THREE,
+                    camera,
+                    lccObj,
+                    capsuleConfig: COLLISION_CAPSULE_CONFIG
+                });
+                if (correction?.error) {
+                    return {
+                        ok: false,
+                        corrected: pass > 0,
+                        reason: 'collision_error'
+                    };
+                }
+                if (!correction?.corrected) {
+                    return {
+                        ok: true,
+                        corrected: pass > 0,
+                        reason: correction?.hit ? 'collision_settled' : 'no_collision_hit'
+                    };
+                }
+            }
+            return {
+                ok: true,
+                corrected: true,
+                reason: 'collision_clamped'
+            };
+        };
+        const enterWalkSafely = ({
+            prevMode = MODES.ORBIT,
+            source = 'runtime'
+        } = {}) => {
+            // Walk entry is transactional: settle position first, then allow mode switch.
+            clearTransientMovementState();
+            // Ensure grounding queries run in the same transformed space currently rendered.
+            applyRotationDraftToRuntime();
+            const previousPosition = camera.position.clone();
+            const previousTarget = controls.target.clone();
+            const candidate = resolveWalkEntryCandidate();
+            const floorSnap = resolveWalkFloorSnap({
+                candidatePosition: candidate.nextPosition,
+                eyeHeight: VIOS_NAV_FEEL_TUNING.walk.defaultEyeHeight
+            });
+            translateCameraKeepingHeading(floorSnap.position);
+            const settleResult = settleWalkCollision({ maxPasses: 2 });
+            const finitePosition = Number.isFinite(camera.position.x)
+                && Number.isFinite(camera.position.y)
+                && Number.isFinite(camera.position.z);
+            const groundedEnough = !Number.isFinite(candidate.minEyeY)
+                || camera.position.y >= (candidate.minEyeY - 0.08);
+            if (!settleResult.ok || !finitePosition || !groundedEnough) {
+                if (lastSafeWalkPosition?.isVector3) {
+                    translateCameraKeepingHeading(lastSafeWalkPosition);
+                } else {
+                    camera.position.copy(previousPosition);
+                    controls.target.copy(previousTarget);
+                }
+                controls.update();
+                console.warn(
+                    `[vios:nav] walk entry aborted from ${prevMode} (${source}) reason=${settleResult.reason || 'grounding_failed'}`
+                );
+                return {
+                    ok: false,
+                    reason: settleResult.reason || 'grounding_failed'
+                };
+            }
+            lastSafeWalkPosition = camera.position.clone();
+            heightSlider.value = camera.position.y.toFixed(2);
+            heightValue.textContent = Number(heightSlider.value).toFixed(2);
+            return {
+                ok: true,
+                reason: floorSnap.snapped
+                    ? floorSnap.reason
+                    : (settleResult.reason || 'grounded')
+            };
+        };
+        const prepareModeTransition = ({
+            prevMode = MODES.WALK,
+            nextMode = MODES.WALK,
+            source = 'runtime'
+        } = {}) => {
+            clearTransientMovementState();
+            if (prevMode === nextMode) {
+                return {
+                    ok: true,
+                    reason: 'no_change'
+                };
+            }
+            const transitionKey = `${prevMode}->${nextMode}`;
+            switch (transitionKey) {
+            case `${MODES.ORBIT}->${MODES.WALK}`:
+            case `${MODES.FLY}->${MODES.WALK}`:
+                return enterWalkSafely({ prevMode, source });
+            case `${MODES.WALK}->${MODES.ORBIT}`:
+            case `${MODES.WALK}->${MODES.FLY}`:
+            case `${MODES.ORBIT}->${MODES.FLY}`:
+            case `${MODES.FLY}->${MODES.ORBIT}`:
+                return {
+                    ok: true,
+                    reason: transitionKey
+                };
+            default:
+                return {
+                    ok: true,
+                    reason: transitionKey
+                };
+            }
+        };
+        const WALK_HELP = 'WASD move | Mouse look | Shift sprint';
         const onboardingSteps = [
             {
-                title: 'Orbit Controls',
-                body: 'Drag to orbit, mouse wheel to zoom, right-drag to pan.\nUse Reset anytime to return to the best framing.'
-            },
-            {
                 title: 'Walk Controls',
-                body: 'Press Walk, then click the view to lock the mouse.\nUse WASD to move, Space/C for vertical movement, Shift to sprint, and Esc to exit walk mode.\nShortcuts: R reset | F fullscreen | H or ? help.'
+                body: 'Click the view to lock the mouse.\nUse WASD to move and Shift to sprint.\nPress Esc to release mouse look.\nShortcuts: R reset | F fullscreen | H or ? help.'
             }
         ];
         const DEBUG_HINT = 'Shift+Click prints world coords';
@@ -2609,10 +3558,15 @@
             updateRotationInfoLabel();
             const modelRoot = lccObj?.root;
             if (!modelRoot?.rotation || typeof modelRoot.rotation.set !== 'function') return;
+            // The load path already applies the base rotation via modelMatrix.
+            // Runtime edits apply a delta on top of that base to avoid double rotation drift.
+            const deltaRx = rotationDraft.rx - baseLoadRotationDeg.rx;
+            const deltaRy = rotationDraft.ry - baseLoadRotationDeg.ry;
+            const deltaRz = rotationDraft.rz - baseLoadRotationDeg.rz;
             modelRoot.rotation.set(
-                THREE.MathUtils.degToRad(rotationDraft.rx),
-                THREE.MathUtils.degToRad(rotationDraft.ry),
-                THREE.MathUtils.degToRad(rotationDraft.rz),
+                THREE.MathUtils.degToRad(deltaRx),
+                THREE.MathUtils.degToRad(deltaRy),
+                THREE.MathUtils.degToRad(deltaRz),
                 'XYZ'
             );
             if (typeof modelRoot.updateMatrix === 'function') modelRoot.updateMatrix();
@@ -2650,9 +3604,10 @@
             autoPerfEnabled,
             performanceMode,
             modeEnum: MODES,
-            initialMode: mode,
+            initialMode: NAV_MODES.WALK,
+            movementResolver: applyMovementStep,
+            frameCollisionResolver: applyFrameCollisionCorrection,
             onModeChanged: ({ mode: nextMode }) => {
-                mode = nextMode;
                 viewerStore.setState({ mode: nextMode });
             },
             onFpsUpdated: ({ currentFps, renderScale }) => {
@@ -2679,6 +3634,287 @@
             storageKey: ONBOARDED_KEY,
             store: viewerStore
         });
+        const navigationEvents = createNavigationEvents({
+            sink: (evt) => emitEvent(evt.name, evt.payload)
+        });
+        const getNavigationViewDefinitions = () => buildViewDefinitionsFromPresets(cameraPresets, {
+            defaultZoneId: 'zone-primary'
+        });
+        const startViewTransitionFromDefinition = (viewDefinition, options = {}) => {
+            if (!viewDefinition?.anchor) return false;
+            const preset = {
+                id: viewDefinition.id,
+                label: viewDefinition.label,
+                position: [...viewDefinition.anchor.position],
+                target: [...viewDefinition.anchor.lookAt],
+                fov: Number.isFinite(Number(viewDefinition.anchor.fov))
+                    ? Number(viewDefinition.anchor.fov)
+                    : null
+            };
+            const tween = animateCameraToPreset({
+                THREE,
+                camera,
+                controls,
+                preset,
+                currentFov: camera.fov,
+                applyPresetFov: options.applyFov === true,
+                durationMs: Number.isFinite(options.durationMs) ? options.durationMs : undefined,
+                nowMs: performance.now(),
+                easing: options.easing || 'cinematic'
+            });
+            if (typeof options.onComplete === 'function') tween.onComplete = options.onComplete;
+            viewerEngine.setCameraTween(tween);
+            return true;
+        };
+        const navigationController = createNavigationController({
+            store: viewerStore,
+            events: navigationEvents,
+            applyMode: (nextMode, transitionContext = {}) => {
+                const prevMode = transitionContext.prevMode || viewerEngine.getMode();
+                const transitionPrep = prepareModeTransition({
+                    prevMode,
+                    nextMode,
+                    source: transitionContext.source || 'runtime'
+                });
+                if (!transitionPrep.ok) {
+                    return {
+                        prevMode,
+                        mode: prevMode,
+                        isOrbit: prevMode === MODES.ORBIT,
+                        rejected: true,
+                        reason: transitionPrep.reason || 'walk_entry_failed'
+                    };
+                }
+                const modeResult = viewerEngine.setMode(nextMode);
+                const resolvedMode = modeResult.mode;
+                if (resolvedMode === MODES.WALK && modeResult.prevMode !== MODES.WALK) {
+                    heightSlider.value = camera.position.y.toFixed(2);
+                    heightValue.textContent = Number(heightSlider.value).toFixed(2);
+                }
+                const walkHeightEnabled = resolvedMode === MODES.WALK;
+                if (walkHeightEnabled) {
+                    uiController.syncWalkHeightUi({ enabled: true, yValue: camera.position.y });
+                } else {
+                    uiController.syncWalkHeightUi({ enabled: false });
+                }
+                uiController.syncModeUi({ mode: resolvedMode });
+                updateHelpText();
+                updateEditorContextUi();
+                return modeResult;
+            },
+            getViewDefinitions: getNavigationViewDefinitions,
+            startViewTransition: startViewTransitionFromDefinition,
+            runResetView: () => {
+                if (lastBounds) fitCameraToBounds(lastBounds);
+                if (getCurrentNavMode() === MODES.WALK) {
+                    const walkReset = enterWalkSafely({
+                        prevMode: MODES.WALK,
+                        source: 'reset'
+                    });
+                    if (!walkReset.ok) alignWalkEyeHeightToGround();
+                }
+            },
+            getCameraPosition: () => [camera.position.x, camera.position.y, camera.position.z],
+            getIsEditorMode: () => editEnabled
+        });
+        navigationController.setBoundaryBlockers(boundaryBlockers, { source: 'bootstrap', force: true });
+        navigationController.setCollisionProfiles({
+            viewerModes: viewerCollisionModesDraft,
+            editorModes: editorCollisionModesDraft
+        }, { source: 'bootstrap', force: true });
+        navigationController.syncCollisionPolicy({ force: true });
+        function getCurrentNavMode() {
+            return viewerStore.getState().navigation?.mode || NAV_MODES.WALK;
+        }
+        function toUiModeLabel(modeValue = NAV_MODES.WALK) {
+            if (modeValue === NAV_MODES.ORBIT) return 'Orbit';
+            if (modeValue === NAV_MODES.FLY) return 'Fly';
+            return 'Walk';
+        }
+        function updateEditorContextUi() {
+            if (!editEnabled) return;
+            const tourId = String(tourConfig.tourId || 'default').trim() || 'default';
+            const modelId = String(resolvedModelId || '').trim() || 'Unassigned';
+            const statusValue = String(getNormalizedTourStatusDraft() || 'draft').toLowerCase();
+            const statusLabel = statusValue === 'published' ? 'Published' : 'Draft';
+            const modeLabel = toUiModeLabel(getCurrentNavMode());
+            const collisionState = viewerStore.getState().navigation?.collision || {};
+            const collisionAvailable = collisionState.available === true;
+            const collisionEnabled = collisionState.effectiveEnabled === true;
+            const collisionLabel = collisionAvailable
+                ? (collisionEnabled ? 'Active' : 'Inactive')
+                : 'Unavailable';
+            editorContextActive.textContent = editorPanelCollapsed ? 'Minimized' : 'Active';
+            editorContextTour.textContent = `${tourId}`;
+            editorContextModel.textContent = modelId;
+            editorContextStatus.textContent = statusLabel;
+            editorContextMode.textContent = modeLabel;
+            editorContextCollision.textContent = collisionLabel;
+            editorContextTour.title = TOUR_TITLE || tourId;
+            editorContextModel.title = modelId;
+            editorContextCollision.title = collisionState.reason || collisionLabel;
+        }
+        const warnMissingCollisionOnce = ({ status = '', errorDetail = '' } = {}) => {
+            if (hasWarnedMissingCollision) return;
+            hasWarnedMissingCollision = true;
+            const reason = status === NAV_COLLISION_STATUS.ERROR
+                ? `collision.lci failed to load (${errorDetail || 'unknown error'})`
+                : 'collision.lci missing in model bundle';
+            console.warn(`[vios:collision] Collision disabled: ${reason}`);
+        };
+        let lastCollisionAvailabilityLogKey = '';
+        let lastCollisionPolicyLogKey = '';
+
+        const logCollisionStateChange = (collisionState = {}) => {
+            const mode = getCurrentNavMode();
+            const availabilityKey = [
+                collisionState.available === true ? '1' : '0',
+                collisionState.status || '',
+                collisionState.lastError || ''
+            ].join('|');
+            if (availabilityKey !== lastCollisionAvailabilityLogKey) {
+                lastCollisionAvailabilityLogKey = availabilityKey;
+                if (collisionState.available === true) {
+                    console.info('[vios:collision] collision.lci available.');
+                } else if (
+                    collisionState.status === NAV_COLLISION_STATUS.ERROR
+                    || collisionState.status === NAV_COLLISION_STATUS.UNAVAILABLE
+                ) {
+                    warnMissingCollisionOnce({
+                        status: collisionState.status,
+                        errorDetail: collisionState.lastError
+                    });
+                }
+            }
+            const policyKey = [
+                mode,
+                collisionState.requestedMode || '',
+                collisionState.requestedEnabled === true ? '1' : '0',
+                collisionState.effectiveEnabled === true ? '1' : '0',
+                collisionState.reason || '',
+                editEnabled ? 'editor' : 'viewer'
+            ].join('|');
+            if (policyKey !== lastCollisionPolicyLogKey) {
+                lastCollisionPolicyLogKey = policyKey;
+                console.info(
+                    `[vios:collision] mode=${mode} requested=${collisionState.requestedEnabled === true ? 'ON' : 'OFF'} `
+                    + `effective=${collisionState.effectiveEnabled === true ? 'ON' : 'OFF'} reason=${collisionState.reason || 'n/a'}`
+                );
+            }
+        };
+
+        const syncCollisionUi = () => {
+            const collisionState = navigationController.getState().collision || {};
+            const normalizedProfiles = normalizeCollisionProfiles({
+                viewerModes: collisionState.viewerModes || viewerCollisionModesDraft,
+                editorModes: collisionState.editorModes || editorCollisionModesDraft
+            });
+            viewerCollisionModesDraft = { ...normalizedProfiles.viewerModes };
+            editorCollisionModesDraft = { ...normalizedProfiles.editorModes };
+            logCollisionStateChange(collisionState);
+            if (!editEnabled) return;
+            const available = collisionState.available === true;
+            const mode = getCurrentNavMode();
+            collisionWrap.classList.toggle('disabled', !available);
+            collisionAvailabilityTag.textContent = available ? 'Available' : 'Unavailable';
+            collisionAvailabilityTag.classList.toggle('is-on', available);
+            collisionEffective.textContent = `Effective (${toUiModeLabel(mode)}): ${collisionState.effectiveEnabled === true ? 'ON' : 'OFF'}`;
+            collisionReason.textContent = `Requested (${editEnabled ? 'editor profile' : 'viewer contract'}): ${collisionState.requestedEnabled === true ? 'ON' : 'OFF'} (${collisionState.reason || 'n/a'})`;
+            collisionPolicy.textContent = editEnabled
+                ? 'Editor runtime uses the per-mode profile below. Published viewer remains Walk-only with collision enforced when available.'
+                : `Active runtime mode: ${toUiModeLabel(mode)}.`;
+            if (collisionEditorModesWrap) {
+                collisionEditorModesWrap.hidden = !editEnabled;
+            }
+            const modeToggles = [
+                collisionEditorOrbitToggle,
+                collisionEditorWalkToggle,
+                collisionEditorFlyToggle
+            ];
+            if (collisionEditorOrbitToggle) collisionEditorOrbitToggle.checked = editorCollisionModesDraft.orbit === true;
+            if (collisionEditorWalkToggle) collisionEditorWalkToggle.checked = editorCollisionModesDraft.walk === true;
+            if (collisionEditorFlyToggle) collisionEditorFlyToggle.checked = editorCollisionModesDraft.fly === true;
+            modeToggles.forEach((toggle) => {
+                if (!toggle) return;
+                toggle.disabled = !available;
+            });
+            if (!available) {
+                collisionHint.hidden = false;
+                collisionHint.textContent = collisionState.status === NAV_COLLISION_STATUS.ERROR
+                    ? 'Collision unavailable (failed to load collision.lci).'
+                    : 'Collision unavailable for this model.';
+            } else {
+                collisionHint.hidden = false;
+                collisionHint.textContent = 'Collision profiles are live in editor. Published viewer remains Walk-only (collision ON when available).';
+            }
+            updateEditorContextUi();
+        };
+        let lastCollisionUiSyncKey = '';
+        viewerStore.subscribe((state) => {
+            const nav = state?.navigation || {};
+            const collision = nav.collision || {};
+            const key = [
+                nav.mode || NAV_MODES.WALK,
+                collision.available === true ? '1' : '0',
+                collision.status || '',
+                collision.requestedMode || '',
+                collision.requestedEnabled === true ? '1' : '0',
+                collision.effectiveEnabled === true ? '1' : '0',
+                collision.viewerModes?.orbit === true ? '1' : '0',
+                collision.viewerModes?.walk === true ? '1' : '0',
+                collision.viewerModes?.fly === true ? '1' : '0',
+                collision.editorModes?.orbit === true ? '1' : '0',
+                collision.editorModes?.walk === true ? '1' : '0',
+                collision.editorModes?.fly === true ? '1' : '0',
+                collision.reason || '',
+                collision.lastError || ''
+            ].join('|');
+            if (key === lastCollisionUiSyncKey) return;
+            lastCollisionUiSyncKey = key;
+            syncCollisionUi();
+        });
+
+        const probeCollisionAvailability = ({ source = 'runtime', candidate = null } = {}) => {
+            const probeTarget = candidate && typeof candidate === 'object' ? candidate : lccObj;
+            let collisionAvailable = false;
+            let collisionStatus = NAV_COLLISION_STATUS.UNAVAILABLE;
+            let collisionErrorMessage = '';
+            try {
+                if (typeof probeTarget?.hasCollision === 'function') {
+                    collisionAvailable = probeTarget.hasCollision() === true;
+                }
+                collisionStatus = collisionAvailable
+                    ? NAV_COLLISION_STATUS.AVAILABLE
+                    : NAV_COLLISION_STATUS.UNAVAILABLE;
+            } catch (error) {
+                collisionAvailable = false;
+                collisionStatus = NAV_COLLISION_STATUS.ERROR;
+                collisionErrorMessage = error?.message ? String(error.message) : 'collision_probe_failed';
+            }
+            navigationController.setCollisionAvailability({
+                available: collisionAvailable,
+                status: collisionStatus,
+                lastError: collisionErrorMessage
+            });
+            const nextCollisionState = navigationController.getState().collision || {};
+            logCollisionStateChange(nextCollisionState);
+            if (!collisionAvailable) {
+                warnMissingCollisionOnce({
+                    status: collisionStatus,
+                    errorDetail: collisionErrorMessage || source
+                });
+            }
+            syncCollisionUi();
+            return nextCollisionState;
+        };
+
+        const getCollisionContext = () => ({
+            lccObj,
+            collisionState: navigationController.getState().collision,
+            capsuleConfig: COLLISION_CAPSULE_CONFIG,
+            boundaries: navigationController.getState().boundaries
+        });
+        syncCollisionUi();
 
         function setLoadingVisual(percent, statusText) {
             loadingUi.setProgress(percent, statusText);
@@ -2852,7 +4088,10 @@
             activeHotspotInfoScore = Infinity;
             activeHotspotInfoContent = null;
             hotspotInfoCard.classList.remove('show');
+            hotspotInfoCard.removeAttribute('data-hotspot-type');
+            hotspotInfoCard.removeAttribute('data-hotspot-id');
             hotspotInfoCard.style.pointerEvents = 'none';
+            hotspotEngine.setActiveHotspot('', selectedHotspotId);
         }
 
         function resolveHotspotInfoContent(hotspot) {
@@ -2898,8 +4137,11 @@
             } else {
                 hotspotInfoCta.hidden = true;
             }
+            hotspotInfoCard.dataset.hotspotType = content.hotspotType || 'info';
+            hotspotInfoCard.dataset.hotspotId = content.hotspotId || '';
             hotspotInfoCard.classList.add('show');
             hotspotInfoCard.style.pointerEvents = content.ctaUrl ? 'auto' : 'none';
+            hotspotEngine.setActiveHotspot(content.hotspotId, selectedHotspotId);
         }
 
         function collectVisibleHotspotCandidates() {
@@ -2969,6 +4211,9 @@
             if (!editEnabled) {
                 editorPanel.style.top = '';
                 editorPanel.style.maxHeight = '';
+                editorRestoreChip.style.top = '';
+                editorRestoreChip.style.left = '';
+                editorRestoreChip.hidden = true;
                 return;
             }
             const dockGap = 6;
@@ -2978,16 +4223,20 @@
             const nextTop = Math.round(Math.max(leftBottom, rightBottom) + dockGap);
             const nextMaxHeight = Math.max(220, Math.floor(window.innerHeight - nextTop - bottomInset));
             editorPanel.style.top = `${nextTop}px`;
-            editorPanel.style.maxHeight = `${nextMaxHeight}px`;
+            editorPanel.style.maxHeight = editorPanelCollapsed ? 'none' : `${nextMaxHeight}px`;
+            const panelRect = editorPanel.getBoundingClientRect();
+            editorRestoreChip.style.top = `${nextTop}px`;
+            editorRestoreChip.style.left = `${Math.round(panelRect.left)}px`;
+            editorRestoreChip.hidden = !editorPanelCollapsed;
         }
 
-        setLoadingVisual(0, 'Preparing 3D experience...');
+        setLoadingVisual(0, 'Preparing experience...');
         tryPlayIntro();
         buildViewsPanel();
         setupHotspots();
         refreshEditorUi();
         if (editEnabled) {
-            initEditorAccordion('hotspots');
+            initEditorAccordion('context');
             pushEditorHistory('initial');
             savedEditorStateHash = editorHistory[editorHistoryIndex]?.hash || getCurrentEditableStateHash();
             syncEditorDirtyFromHistory();
@@ -3018,7 +4267,7 @@
         }
 
         function resetView() {
-            if (lastBounds) fitCameraToBounds(lastBounds);
+            navigationController.resetView({ source: 'ui' });
         }
 
         function applyStartupViewOnce() {
@@ -3032,8 +4281,17 @@
                     resolveStartupPlan
                 },
                 findPresetById: (presetId) => cameraPresets.find((p) => p.id === presetId) || null,
-                startPresetAnimation: (preset, options) => animateToPreset(preset, options),
-                resetView,
+                startPresetAnimation: (preset, options) => navigationController.goToView(preset.id, {
+                    applyFov: options?.applyFov === true,
+                    source: 'startup',
+                    onComplete: () => {
+                        setMode(MODES.WALK);
+                    }
+                }),
+                resetView: () => navigationController.resetView({
+                    source: 'startup',
+                    keepMode: true
+                }),
                 applyFovFromQuery: false
             });
             startupViewApplied = startupResult.startupAppliedNext;
@@ -3074,6 +4332,57 @@
 
         function getNormalizedTourStatusDraft() {
             return normalizeTourStatus(tourStatusDraft, { fallback: 'draft' });
+        }
+
+        function derivePublishPrepState() {
+            if (validationState.hasBlockingErrors) return 'blocked';
+            if (isNonEmptyString(publishRegistryPayloadText)) return 'ready';
+            if (editorDirtyState) return 'stale';
+            return 'idle';
+        }
+
+        function getPublishPrepHintForState(prepState) {
+            if (prepState === 'blocked') {
+                return 'Publish prep is blocked by validation errors. Fix Validation issues, then run publish prep again.';
+            }
+            if (prepState === 'ready') {
+                return 'Publish prep ready. Export `tour.json`, then copy/download `tours.registry.json` or the publish bundle.';
+            }
+            if (prepState === 'stale') {
+                return 'Draft changed after publish prep. Run publish prep again to refresh `tours.registry.json` output.';
+            }
+            return 'Run publish prep after validation to generate updated `tours.registry.json` output.';
+        }
+
+        function renderPublishWorkflowUi() {
+            if (!editEnabled) return;
+            const normalizedStatus = getNormalizedTourStatusDraft();
+            const prepState = derivePublishPrepState();
+            const errorCount = Array.isArray(validationState.errors) ? validationState.errors.length : 0;
+            const warningCount = Array.isArray(validationState.warnings) ? validationState.warnings.length : 0;
+
+            publishStateTourStatus.textContent = normalizedStatus === 'published' ? 'Published' : 'Draft';
+            if (errorCount > 0) {
+                publishStateValidation.textContent = `Blocking (${errorCount} error${errorCount === 1 ? '' : 's'})`;
+            } else if (warningCount > 0) {
+                publishStateValidation.textContent = `Ready (${warningCount} warning${warningCount === 1 ? '' : 's'})`;
+            } else {
+                publishStateValidation.textContent = 'Ready';
+            }
+
+            if (prepState === 'ready') publishStatePrep.textContent = 'Prepared';
+            else if (prepState === 'stale') publishStatePrep.textContent = 'Stale';
+            else if (prepState === 'blocked') publishStatePrep.textContent = 'Blocked';
+            else publishStatePrep.textContent = 'Idle';
+
+            if (exportWorkflowSummary) {
+                exportWorkflowSummary.dataset.prepState = prepState;
+                exportWorkflowSummary.textContent = getPublishPrepHintForState(prepState);
+            }
+
+            metaCopyRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
+            metaDownloadRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
+            metaPublishHint.textContent = getPublishPrepHintForState(prepState);
         }
 
         function buildCurrentViewerUrl() {
@@ -3127,7 +4436,7 @@
             isEditorAccordionSyncing = false;
         }
 
-        function initEditorAccordion(defaultKey = 'hotspots') {
+        function initEditorAccordion(defaultKey = 'context') {
             if (!editEnabled) return;
             const entries = Object.entries(editorAccordionSections).filter(([, section]) => !!section);
             if (!entries.length) return;
@@ -3270,6 +4579,7 @@
 
             copyConfigBtn.disabled = next.hasBlockingErrors;
             downloadConfigBtn.disabled = next.hasBlockingErrors;
+            renderPublishWorkflowUi();
         }
 
         function recomputeEditorValidation() {
@@ -3338,8 +4648,8 @@
             if (registryLoadErrors.tours) hints.push('Tour registry unavailable');
             if (registryLoadErrors.models) hints.push('Model registry unavailable');
             metaContentHint.textContent = hints.length
-                ? `${hints.join(' · ')}.`
-                : 'Open an existing tour or start a new draft from a model.';
+                ? `${hints.join(' | ')}. Verify registry files before opening or creating drafts.`
+                : 'Step 1: open an existing tour or create a new draft from a model.';
         }
 
         function renderMetadataUi() {
@@ -3352,9 +4662,6 @@
             const viewerUrl = buildCurrentViewerUrl();
             metaViewerUrl.textContent = viewerUrl || 'Unavailable';
             metaCopyViewerUrlBtn.disabled = !isNonEmptyString(viewerUrl);
-            metaCopyRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
-            metaDownloadRegistryBtn.disabled = !isNonEmptyString(publishRegistryPayloadText);
-            metaPublishHint.textContent = publishHintText;
             metaPropertyTitle.value = propertyTitleDraft || '';
             metaPropertyAddress.value = propertyAddressDraft || '';
             metaPropertyPrice.value = propertyPriceDraft || '';
@@ -3363,11 +4670,14 @@
             metaRotationRx.value = formatRotationDraftValue(rotationDraft.rx);
             metaRotationRy.value = formatRotationDraftValue(rotationDraft.ry);
             metaRotationRz.value = formatRotationDraftValue(rotationDraft.rz);
+            renderPublishWorkflowUi();
+            updateEditorContextUi();
         }
 
         function setEditorDirty(nextDirty) {
             editorDirtyState = !!nextDirty;
             editorUi.setDirty(editorDirtyState);
+            renderPublishWorkflowUi();
         }
 
         function touchEditor() {
@@ -3375,10 +4685,6 @@
             setEditorDirty(true);
             if (isNonEmptyString(publishRegistryPayloadText)) {
                 publishRegistryPayloadText = '';
-                publishHintText = 'Draft changed after last publish prep. Run publish prep again.';
-                metaCopyRegistryBtn.disabled = true;
-                metaDownloadRegistryBtn.disabled = true;
-                metaPublishHint.textContent = publishHintText;
             }
             recomputeEditorValidation();
         }
@@ -3392,7 +4698,11 @@
                 action,
                 hotspots: cloneState(hotspotConfigs),
                 cameraPresets: cloneState(cameraPresets),
-                defaultPresetId: defaultPresetId || ''
+                defaultPresetId: defaultPresetId || '',
+                collisionProfiles: {
+                    viewerModes: cloneState(viewerCollisionModesDraft),
+                    editorModes: cloneState(editorCollisionModesDraft)
+                }
             };
         }
 
@@ -3400,7 +4710,8 @@
             return JSON.stringify({
                 hotspots: snapshot.hotspots || [],
                 cameraPresets: snapshot.cameraPresets || [],
-                defaultPresetId: snapshot.defaultPresetId || ''
+                defaultPresetId: snapshot.defaultPresetId || '',
+                collisionProfiles: snapshot.collisionProfiles || null
             });
         }
 
@@ -3445,6 +4756,19 @@
             if (selectedPresetId && !cameraPresets.some((preset) => preset.id === selectedPresetId)) {
                 selectedPresetId = '';
             }
+            const restoredCollisionProfiles = normalizeCollisionProfiles(snapshot.collisionProfiles || {
+                viewerModes: viewerCollisionModesDraft,
+                editorModes: editorCollisionModesDraft
+            });
+            viewerCollisionModesDraft = { ...restoredCollisionProfiles.viewerModes };
+            editorCollisionModesDraft = { ...restoredCollisionProfiles.editorModes };
+            navigationController.setCollisionProfiles({
+                viewerModes: viewerCollisionModesDraft,
+                editorModes: editorCollisionModesDraft
+            }, {
+                source: 'history_restore',
+                force: true
+            });
             viewerStore.setState({
                 selectedHotspotId,
                 selectedPresetId
@@ -3456,6 +4780,7 @@
             updateSelectedHotspotPosDisplay();
             updateHotspotSelectionVisual();
             recomputeEditorValidation();
+            syncCollisionUi();
         }
 
         function pushEditorHistory(action) {
@@ -3568,7 +4893,9 @@
                 setEditorStatus('Placement mode: click on model to place hotspot.');
             } else {
                 hotspotEngine.setHoveredHotspot(hoveredHotspot?.id || '', selectedHotspotId);
-                renderer.domElement.style.cursor = hoveredHotspot ? 'pointer' : '';
+                renderer.domElement.style.cursor = hoveredHotspot
+                    ? (isHotspotDragMode() ? 'grab' : 'pointer')
+                    : '';
                 setEditorStatus('');
             }
         }
@@ -3588,8 +4915,10 @@
         }
 
         function setupHotspots() {
+            hotspotEngine.setVisibilityPolicy(editEnabled ? 'editor' : 'viewer', selectedHotspotId);
             hotspotEngine.setHotspots(hotspotConfigs, selectedHotspotId);
             hotspotEngine.setHoveredHotspot(hoveredHotspot?.id || '', selectedHotspotId);
+            hotspotEngine.setActiveHotspot(activeHotspotInfoId || '', selectedHotspotId);
             syncHotspotRuntimeState();
         }
 
@@ -3599,6 +4928,10 @@
 
         function getHotspotFromEvent(event) {
             return hotspotEngine.pickFromPointer(event);
+        }
+
+        function isHotspotDragMode(modeValue = getCurrentNavMode()) {
+            return editEnabled && modeValue !== MODES.ORBIT;
         }
 
         function applySnapYIfEnabled(point) {
@@ -3618,7 +4951,7 @@
         }
 
         function beginHotspotDrag(hotspot, pointerId) {
-            if (!editEnabled || !hotspot) return false;
+            if (!editEnabled || !hotspot || !isHotspotDragMode()) return false;
             selectedHotspotId = hotspot.id;
             viewerStore.setState({ selectedHotspotId });
             openEditorSection('hotspots');
@@ -3640,6 +4973,14 @@
 
         function stopHotspotDrag() {
             if (!draggingHotspotId) return;
+            const pointerIdToRelease = draggingPointerId;
+            if (Number.isFinite(pointerIdToRelease)) {
+                try {
+                    renderer.domElement.releasePointerCapture(pointerIdToRelease);
+                } catch {
+                    // best effort
+                }
+            }
             const ended = hotspotEngine.endDrag(selectedHotspotId);
             syncHotspotRuntimeState();
             if (ended.moved) {
@@ -3650,9 +4991,10 @@
             }
             updateHotspotSelectionVisual();
             updateSelectedHotspotPosDisplay();
+            const canDragHotspots = isHotspotDragMode();
             renderer.domElement.style.cursor = hotspotPlacementMode
                 ? 'crosshair'
-                : (editEnabled && hoveredHotspot ? 'grab' : (hoveredHotspot ? 'pointer' : ''));
+                : (canDragHotspots && hoveredHotspot ? 'grab' : (hoveredHotspot ? 'pointer' : ''));
         }
 
         function dragHotspotFromPointer(event) {
@@ -3695,20 +5037,13 @@
         }
 
         function animateToPreset(preset, options = {}) {
-            const applyPresetFov = options.applyFov === true;
-            setMode(MODES.ORBIT);
-            const tween = animateCameraToPreset({
-                THREE,
-                camera,
-                controls,
-                preset,
-                currentFov: camera.fov,
-                applyPresetFov,
+            if (!preset?.id) return false;
+            return navigationController.goToView(preset.id, {
+                applyFov: options.applyFov === true,
                 durationMs: Number.isFinite(options.durationMs) ? options.durationMs : undefined,
-                nowMs: performance.now(),
-                easing: options.easing || 'cinematic'
+                easing: options.easing || 'cinematic',
+                source: options.source || 'runtime'
             });
-            viewerEngine.setCameraTween(tween);
         }
 
         function buildExportConfig({ stampMetadata = false, statusOverride = '' } = {}) {
@@ -3730,7 +5065,45 @@
                 rz: rotationDraft.rz
             };
             cfg.fov = Number.isFinite(parseNum(cfg.fov)) ? Number(cfg.fov) : Number(initialFov);
-            cfg.startMode = cfg.startMode === 'walk' ? 'walk' : 'orbit';
+            cfg.startMode = VIOS_NAV_FEEL_TUNING.startup.defaultMode;
+            cfg.navigation = (cfg.navigation && typeof cfg.navigation === 'object') ? cfg.navigation : {};
+            cfg.navigation.collision = (cfg.navigation.collision && typeof cfg.navigation.collision === 'object')
+                ? cfg.navigation.collision
+                : {};
+            const runtimeCollisionProfiles = normalizeCollisionProfiles({
+                viewerModes: viewerCollisionModesDraft,
+                editorModes: editorCollisionModesDraft
+            });
+            cfg.navigation.collision.viewerModes = {
+                orbit: runtimeCollisionProfiles.viewerModes.orbit === true,
+                walk: runtimeCollisionProfiles.viewerModes.walk === true,
+                fly: runtimeCollisionProfiles.viewerModes.fly === true
+            };
+            cfg.navigation.collision.editorModes = {
+                orbit: runtimeCollisionProfiles.editorModes.orbit === true,
+                walk: runtimeCollisionProfiles.editorModes.walk === true,
+                fly: runtimeCollisionProfiles.editorModes.fly === true
+            };
+            delete cfg.navigation.collision.editorEnabled;
+            const runtimeBoundaryBlockers = Array.isArray(navigationController.getState().boundaries?.blockers)
+                ? navigationController.getState().boundaries.blockers
+                : boundaryBlockers;
+            if (runtimeBoundaryBlockers.length) {
+                cfg.navigation.boundaries = cfg.navigation.boundaries && typeof cfg.navigation.boundaries === 'object'
+                    ? cfg.navigation.boundaries
+                    : {};
+                cfg.navigation.boundaries.blockers = runtimeBoundaryBlockers.map((entry) => ({
+                    id: entry.id,
+                    type: entry.type || 'aabb',
+                    enabled: entry.enabled !== false,
+                    min: [entry.min[0], entry.min[1], entry.min[2]],
+                    max: [entry.max[0], entry.max[1], entry.max[2]],
+                    ...(entry.meta && typeof entry.meta === 'object' ? { meta: JSON.parse(JSON.stringify(entry.meta)) } : {})
+                }));
+            } else if (cfg.navigation.boundaries && typeof cfg.navigation.boundaries === 'object') {
+                delete cfg.navigation.boundaries.blockers;
+                if (!Object.keys(cfg.navigation.boundaries).length) delete cfg.navigation.boundaries;
+            }
             cfg.cta = cfg.cta || {};
             const setOptionalTopLevel = (key, value) => {
                 if (isNonEmptyString(value)) cfg[key] = String(value).trim();
@@ -3815,7 +5188,7 @@
             const text = JSON.stringify(buildExportConfig({ stampMetadata: true }), null, 2);
             try {
                 await navigator.clipboard.writeText(text);
-                setEditorStatus('Config copied to clipboard.');
+                setEditorStatus('`tour.json` copied to clipboard.');
                 markEditorSavedState();
             } catch {
                 setEditorStatus('Clipboard unavailable. See console output.');
@@ -3839,7 +5212,7 @@
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
-            setEditorStatus('Config downloaded.');
+            setEditorStatus('`tour.json` downloaded.');
             markEditorSavedState();
         }
 
@@ -3865,7 +5238,7 @@
             }
             try {
                 await navigator.clipboard.writeText(publishRegistryPayloadText);
-                setEditorStatus('Registry JSON copied.');
+                setEditorStatus('`tours.registry.json` copied.');
             } catch {
                 console.log(publishRegistryPayloadText);
                 setEditorStatus('Clipboard unavailable. Registry JSON logged to console.');
@@ -3886,7 +5259,7 @@
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
-            setEditorStatus('Registry JSON downloaded.');
+            setEditorStatus('`tours.registry.json` downloaded.');
         }
 
         function formatPublishBundleStamp(dateValue = new Date()) {
@@ -3962,7 +5335,6 @@
             touchEditor();
             if (validationState.hasBlockingErrors) {
                 publishRegistryPayloadText = '';
-                publishHintText = 'Publish prep blocked by validation errors.';
                 renderMetadataUi();
                 openEditorSection('validation');
                 setEditorStatus(`Publish blocked: fix ${validationState.errors.length} validation error(s).`);
@@ -3974,11 +5346,10 @@
             if (Array.isArray(registryPayload.tours)) {
                 tourRegistry.splice(0, tourRegistry.length, ...registryPayload.tours);
             }
-            publishHintText = 'Publish prep ready. Copy/download updated tours.registry.json and export tour.json.';
             renderContentRegistryControls();
             renderMetadataUi();
             recomputeEditorValidation();
-            setEditorStatus('Publish prep ready.');
+            setEditorStatus('Publish prep ready (`status = published`).');
         }
 
         function buildViewsPanel() {
@@ -3993,8 +5364,7 @@
                 button.type = 'button';
                 button.textContent = preset.id === defaultPresetId ? `${preset.label} (default)` : preset.label;
                 button.addEventListener('click', () => {
-                    emitEvent('view_preset_click', { presetId: preset.id, label: preset.label });
-                    animateToPreset(preset);
+                    navigationController.goToView(preset.id, { source: 'views_panel' });
                     setViewsOpen(false);
                 });
                 viewsPanel.appendChild(button);
@@ -4063,8 +5433,7 @@
                         selectedPresetId = preset.id;
                         viewerStore.setState({ selectedPresetId });
                         openEditorSection('presets');
-                        emitEvent('view_preset_click', { presetId: preset.id, label: preset.label });
-                        animateToPreset(preset);
+                        navigationController.goToView(preset.id, { source: 'editor_preset_jump' });
                         renderEditorPresetList();
                     },
                     onSetDefaultPreset: (preset) => {
@@ -4133,7 +5502,8 @@
             const existingIds = new Set(cameraPresets.map((p) => p.id));
             const id = nextUniqueId(slugify(label), existingIds);
             let target = controls.target.clone();
-            if (mode === MODES.WALK) {
+            const currentMode = getCurrentNavMode();
+            if (currentMode === MODES.WALK) {
                 const fwd = new THREE.Vector3();
                 camera.getWorldDirection(fwd);
                 target = camera.position.clone().addScaledVector(fwd, Math.max(1, controls.minDistance || 5));
@@ -4171,13 +5541,18 @@
 
         function updateHelpText() {
             const debugSuffix = debugEnabled ? ` | ${DEBUG_HINT}` : '';
-            if (mode === MODES.WALK) {
-                showHint(walkControls.isLocked
-                    ? `${WALK_HELP} | Esc to release${debugSuffix}`
-                    : `Walk mode ready. Click to lock mouse | ${WALK_HELP}${debugSuffix}`);
+            const currentMode = getCurrentNavMode();
+            if (currentMode === MODES.ORBIT) {
+                showHint(`Orbit mode ready. Drag to orbit, scroll to zoom, and right-drag to pan.${debugSuffix}`);
                 return;
             }
-            showHint(`Orbit mode ready. Drag to explore, scroll to zoom, and right-drag to pan.${debugSuffix}`);
+            if (currentMode === MODES.FLY) {
+                showHint(`Fly mode ready. WASD move | Q/E/Space/C vertical${debugSuffix}`);
+                return;
+            }
+            showHint(walkControls.isLocked
+                ? `${WALK_HELP} | Esc to release${debugSuffix}`
+                : `Walk mode ready. Click to lock mouse | ${WALK_HELP}${debugSuffix}`);
         }
 
         async function toggleFullscreen() {
@@ -4189,27 +5564,24 @@
         }
 
         function setMode(nextMode) {
-            const modeResult = viewerEngine.setMode(nextMode);
-            const isOrbit = modeResult.isOrbit;
-            viewerStore.setState({ mode: modeResult.mode });
-            if (isOrbit) {
-                uiController.syncWalkHeightUi({ enabled: false });
-            } else {
-                uiController.syncWalkHeightUi({ enabled: true, yValue: camera.position.y });
-            }
-            uiController.syncModeUi({ isOrbit });
-            updateHelpText();
+            const normalizedMode = editEnabled ? nextMode : MODES.WALK;
+            navigationController.setMode(normalizedMode, {
+                source: 'ui',
+                allowNonWalk: editEnabled === true
+            });
         }
 
         function updateWalk(deltaTime) {
-            viewerEngine.updateWalk(deltaTime, {
+            viewerEngine.updateMovement(deltaTime, {
                 moveKeys,
+                movementKeyCodes: NAVIGATION_MOVEMENT_KEY_CODES,
                 getBaseSpeed: () => Number(speedSlider.value) || 2,
                 walkHeightEnabled: heightSlider.disabled === false,
                 onWalkHeightSync: (nextY) => {
                     heightSlider.value = nextY.toFixed(2);
                     heightValue.textContent = Number(heightSlider.value).toFixed(2);
-                }
+                },
+                collisionContext: getCollisionContext()
             });
         }
 
@@ -4256,7 +5628,10 @@
         });
         heightSlider.addEventListener('input', () => {
             heightValue.textContent = Number(heightSlider.value).toFixed(2);
-            if (mode === MODES.WALK) camera.position.y = Number(heightSlider.value);
+            const currentMode = getCurrentNavMode();
+            if (currentMode === MODES.WALK) {
+                camera.position.y = Number(heightSlider.value);
+            }
         });
         fovSlider.addEventListener('input', () => {
             const nextFov = Number(fovSlider.value);
@@ -4276,13 +5651,52 @@
             viewerEngine.setQuality({ performanceMode });
             if (lccObj?.useEnvironment) lccObj.useEnvironment(!performanceMode);
         });
-        orbitBtn.addEventListener('click', () => setMode(MODES.ORBIT));
-        walkBtn.addEventListener('click', () => setMode(MODES.WALK));
-        homeBtn.addEventListener('click', () => {
-            emitEvent('home_click', {});
-            resetView();
+        // Contract: viewer is Walk-only; editor exposes Walk/Fly/Orbit authoring modes.
+        const advancedModesEnabled = editEnabled === true;
+        orbitBtn.hidden = !advancedModesEnabled;
+        flyBtn.hidden = !advancedModesEnabled;
+        orbitBtn.disabled = !advancedModesEnabled;
+        flyBtn.disabled = !advancedModesEnabled;
+        orbitBtn.setAttribute('aria-hidden', advancedModesEnabled ? 'false' : 'true');
+        flyBtn.setAttribute('aria-hidden', advancedModesEnabled ? 'false' : 'true');
+        orbitBtn.tabIndex = advancedModesEnabled ? 0 : -1;
+        flyBtn.tabIndex = advancedModesEnabled ? 0 : -1;
+        orbitBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            setMode(MODES.ORBIT);
         });
-        resetBtn.addEventListener('click', () => resetView());
+        walkBtn.addEventListener('click', () => setMode(MODES.WALK));
+        flyBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            setMode(MODES.FLY);
+        });
+        const applyEditorCollisionModeToggle = (mode, toggleEl) => {
+            if (!editEnabled || !toggleEl) return;
+            const enabled = toggleEl.checked === true;
+            editorCollisionModesDraft = {
+                ...editorCollisionModesDraft,
+                [mode]: enabled
+            };
+            navigationController.setCollisionProfileModeEnabled('editor', mode, enabled, {
+                source: 'editor_collision_toggle',
+                force: true
+            });
+            touchEditor();
+            pushEditorHistory(`collision ${toUiModeLabel(mode)} ${enabled ? 'on' : 'off'}`);
+        };
+        collisionEditorOrbitToggle?.addEventListener('change', () => {
+            applyEditorCollisionModeToggle(NAV_MODES.ORBIT, collisionEditorOrbitToggle);
+        });
+        collisionEditorWalkToggle?.addEventListener('change', () => {
+            applyEditorCollisionModeToggle(NAV_MODES.WALK, collisionEditorWalkToggle);
+        });
+        collisionEditorFlyToggle?.addEventListener('change', () => {
+            applyEditorCollisionModeToggle(NAV_MODES.FLY, collisionEditorFlyToggle);
+        });
+        homeBtn.addEventListener('click', () => {
+            navigationController.resetView({ source: 'home_button' });
+        });
+        resetBtn.addEventListener('click', () => navigationController.resetView({ source: 'reset_button' }));
         fullscreenBtn.addEventListener('click', () => toggleFullscreen());
         viewsBtn.addEventListener('click', () => {
             if (!cameraPresets.length) return;
@@ -4301,7 +5715,7 @@
         });
         moreResetBtn.addEventListener('click', () => {
             setCompactMenuOpen(false);
-            resetView();
+            navigationController.resetView({ source: 'compact_reset' });
         });
         moreFullscreenBtn.addEventListener('click', async () => {
             setCompactMenuOpen(false);
@@ -4309,8 +5723,7 @@
         });
         moreHomeBtn.addEventListener('click', () => {
             setCompactMenuOpen(false);
-            emitEvent('home_click', {});
-            resetView();
+            navigationController.resetView({ source: 'compact_home' });
         });
         moreHelpBtn.addEventListener('click', () => {
             setCompactMenuOpen(false);
@@ -4331,6 +5744,14 @@
         redoBtn.addEventListener('click', () => {
             if (!editEnabled) return;
             redoEditor();
+        });
+        minimizeEditorBtn.addEventListener('click', () => {
+            if (!editEnabled) return;
+            toggleEditorPanelCollapsed();
+        });
+        editorRestoreChip.addEventListener('click', () => {
+            if (!editEnabled) return;
+            setEditorPanelCollapsed(false, { source: 'ui' });
         });
         copyConfigBtn.addEventListener('click', () => {
             if (!editEnabled) return;
@@ -4521,7 +5942,9 @@
                 hoveredHotspot = hotspot;
                 hotspotEngine.setHoveredHotspot(hotspot?.id || '', selectedHotspotId);
             }
-            if (editEnabled) renderer.domElement.style.cursor = hotspot ? 'grab' : '';
+            if (editEnabled) renderer.domElement.style.cursor = hotspot
+                ? (isHotspotDragMode() ? 'grab' : 'pointer')
+                : '';
             else renderer.domElement.style.cursor = hotspot ? 'pointer' : '';
         });
         renderer.domElement.addEventListener('mouseleave', () => {
@@ -4536,6 +5959,8 @@
             if (!editEnabled) return;
             if (hotspotPlacementMode) return;
             if (event.button !== 0) return;
+            const currentMode = getCurrentNavMode();
+            if (!isHotspotDragMode(currentMode)) return;
             const hotspot = getHotspotFromEvent(event);
             if (!hotspot) return;
             const started = beginHotspotDrag(hotspot, event.pointerId);
@@ -4597,19 +6022,27 @@
             }
             const hotspot = getHotspotFromEvent(event);
             if (handleHotspotClick(hotspot)) return;
-            if (mode === MODES.WALK && !walkControls.isLocked) walkControls.lock();
+            const currentMode = getCurrentNavMode();
+            if (currentMode === MODES.WALK && !walkControls.isLocked) {
+                walkControls.lock();
+            }
         });
         walkControls.addEventListener('lock', () => updateHelpText());
         walkControls.addEventListener('unlock', () => {
-            if (mode === MODES.WALK) setMode(MODES.ORBIT);
-            else updateHelpText();
+            moveKeyTracker.clear();
+            navigationController.stopMovement({ source: 'pointer_unlock' });
+            updateHelpText();
         });
         window.addEventListener('keydown', (event) => {
             registerViewerActivity({ suppressMs: IDLE_INTERACTION_SUPPRESS_MS });
-            const activeTag = document.activeElement?.tagName;
-            const isInputFocus = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
-            const hasCommandModifier = event.ctrlKey || event.metaKey;
-            const isMovementKey = MOVEMENT_KEY_CODES.has(event.code);
+            const keyContext = getKeyInputContext({
+                event,
+                movementKeyCodes: NAVIGATION_MOVEMENT_KEY_CODES
+            });
+            const isInputFocus = keyContext.editable;
+            const hasCommandModifier = keyContext.hasCommandModifier;
+            const isMovementKey = keyContext.isMovementKey;
+            const currentMode = getCurrentNavMode();
             if (editEnabled && hasCommandModifier && !isInputFocus) {
                 if (event.code === 'KeyZ' && event.shiftKey) {
                     event.preventDefault();
@@ -4627,11 +6060,11 @@
                     return;
                 }
             }
-            if (event.code === 'Space' || event.code === 'KeyC') event.preventDefault();
+            if (!isInputFocus && (event.code === 'Space' || event.code === 'KeyC')) event.preventDefault();
             if (!isInputFocus) {
                 if (event.code === 'KeyR') {
                     event.preventDefault();
-                    resetView();
+                    navigationController.resetView({ source: 'keyboard' });
                 } else if (event.code === 'KeyF') {
                     event.preventDefault();
                     toggleFullscreen();
@@ -4641,30 +6074,46 @@
                         event.preventDefault();
                         setSettingsOpen(false);
                         setCompactMenuOpen(false);
-                    } else if (mode === MODES.WALK) {
-                        event.preventDefault();
-                        setMode(MODES.ORBIT);
                     }
                 } else if (event.code === 'KeyH' || (event.code === 'Slash' && event.shiftKey)) {
                     event.preventDefault();
                     if (sceneReady) toggleOnboarding();
                 }
             }
-            if (!editEnabled && !isInputFocus && !hasCommandModifier && isMovementKey && mode !== MODES.WALK) {
-                setMode(MODES.WALK);
-            }
-            if (!editEnabled && !isInputFocus && !hasCommandModifier && isMovementKey && mode === MODES.WALK && !walkControls.isLocked) {
+            if (
+                !editEnabled
+                && !isInputFocus
+                && !hasCommandModifier
+                && isMovementKey
+                && getCurrentNavMode() === MODES.WALK
+                && !walkControls.isLocked
+            ) {
                 try {
                     walkControls.lock();
                 } catch {
                     // best effort
                 }
             }
-            moveKeys.add(event.code);
+            if (!isInputFocus) {
+                const keyDownResult = moveKeyTracker.keyDown(event.code);
+                if (keyDownResult.added && keyDownResult.isMovementKey) {
+                    navigationController.startMovement({
+                        source: 'keyboard',
+                        key: event.code
+                    });
+                }
+            }
         });
-        window.addEventListener('keyup', (event) => moveKeys.delete(event.code));
+        window.addEventListener('keyup', (event) => {
+            const keyUpResult = moveKeyTracker.keyUp(event.code);
+            if (keyUpResult.isMovementKey && !keyUpResult.hasMovementIntent) {
+                navigationController.stopMovement({ source: 'keyboard' });
+            }
+        });
         window.addEventListener('blur', () => {
             if (draggingHotspotId) stopHotspotDrag();
+            moveKeyTracker.clear();
+            navigationController.stopMovement({ source: 'window_blur' });
         });
 
         const modelMatrix = new THREE.Matrix4();
@@ -4689,6 +6138,16 @@
             appKey: null
         }, (mesh) => {
             console.log('Lcc object Loaded:  ', mesh);
+            probeCollisionAvailability({
+                source: 'load_callback',
+                candidate: mesh
+            });
+            setTimeout(() => {
+                probeCollisionAvailability({ source: 'deferred_probe_350ms' });
+            }, 350);
+            setTimeout(() => {
+                probeCollisionAvailability({ source: 'deferred_probe_1500ms' });
+            }, 1500);
             applyRotationDraftToRuntime();
             if (mesh?.getBounds) {
                 const b = mesh.getBounds();
@@ -4697,28 +6156,33 @@
                     fitCameraToBounds(b);
                 }
             }
+            const startupWalkSettle = enterWalkSafely({
+                prevMode: MODES.WALK,
+                source: 'startup_load'
+            });
+            if (!startupWalkSettle.ok) alignWalkEyeHeightToGround();
             applyStartupViewOnce();
             sceneReady = true;
-            setLoadingVisual(100, 'Ready');
+            setLoadingVisual(100, 'Experience ready');
             hideIntro();
             setTimeout(() => {
                 hideLoadingOverlay();
                 if (!readOnboarded()) openOnboarding(0);
-            }, 220);
+            }, 280);
         }, (percent) => {
             const p = THREE.MathUtils.clamp(percent * 100, 0, 100);
             maxLoadingPercent = Math.max(maxLoadingPercent, p);
-            setLoadingVisual(maxLoadingPercent, maxLoadingPercent > 97 ? 'Finalizing scene...' : 'Loading scene data...');
+            setLoadingVisual(maxLoadingPercent, maxLoadingPercent > 97 ? 'Finalizing scene...' : 'Loading 3D data...');
         }, () => {
             console.log("Lcc object loading failure");
-            setLoadingErrorState('Could not load this 3D tour. Please check files and retry.');
+            setLoadingErrorState('Could not load this tour. Check your network or try loading the default tour.');
         });
 
         window.lccObj = lccObj;
         window.LCCRender = LCCRender;
         window.resetView = resetView;
 
-        setMode(startModeConfig === 'walk' ? MODES.WALK : MODES.ORBIT);
+        navigationController.setMode(MODES.WALK, { source: 'startup', force: true });
         updateHelpText();
 
         window.addEventListener('resize', () => {
@@ -4737,19 +6201,27 @@
                 lccUpdate: true,
                 threeRender: true,
                 moveKeys,
+                movementKeyCodes: NAVIGATION_MOVEMENT_KEY_CODES,
                 getBaseSpeed: () => Number(speedSlider.value) || 2,
                 walkHeightEnabled: heightSlider.disabled === false,
                 onWalkHeightSync: (nextY) => {
                     heightSlider.value = nextY.toFixed(2);
                     heightValue.textContent = Number(heightSlider.value).toFixed(2);
-                }
+                },
+                collisionContext: getCollisionContext()
             });
+            navigationController.tick({ now, delta });
             updateHotspotInfoCard(now);
+            hotspotEngine.tick({
+                nowMs: now,
+                deltaSec: delta
+            });
         });
         })();
     </script>
 </body>
 
 </html>
+
 
 

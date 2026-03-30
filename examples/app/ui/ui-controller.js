@@ -13,6 +13,7 @@ export const createUiController = ({
         viewsBtn,
         orbitBtn,
         walkBtn,
+        flyBtn,
         heightWrap,
         heightSlider,
         heightValue
@@ -41,9 +42,13 @@ export const createUiController = ({
         if (isOpen) setCompactMenuOpen(false);
     };
 
-    const syncModeUi = ({ isOrbit }) => {
-        orbitBtn.classList.toggle('active', !!isOrbit);
-        walkBtn.classList.toggle('active', !isOrbit);
+    const syncModeUi = ({ mode, isOrbit } = {}) => {
+        const resolvedMode = typeof mode === 'string'
+            ? mode
+            : (isOrbit ? 'orbit' : 'walk');
+        if (orbitBtn) orbitBtn.classList.toggle('active', resolvedMode === 'orbit');
+        if (walkBtn) walkBtn.classList.toggle('active', resolvedMode === 'walk');
+        if (flyBtn) flyBtn.classList.toggle('active', resolvedMode === 'fly');
     };
 
     const syncWalkHeightUi = ({ enabled, yValue }) => {

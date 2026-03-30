@@ -1,3 +1,5 @@
+import { resolveFlyMovementBasis } from '../navigation/navigation-feel-config.js';
+
 export const createViewerEngine = ({
     THREE,
     scene,
@@ -12,6 +14,8 @@ export const createViewerEngine = ({
     performanceMode = false,
     modeEnum,
     initialMode,
+    movementResolver,
+    frameCollisionResolver,
     onModeChanged,
     onFpsUpdated,
     onFovUpdated
@@ -26,7 +30,7 @@ export const createViewerEngine = ({
     let currentFps = 0;
     let lowFpsTime = 0;
     let highFpsTime = 0;
-    let mode = initialMode || modeEnum.ORBIT;
+    let mode = initialMode || modeEnum.WALK;
     let cameraTween = null;
     const targetForward = new THREE.Vector3();
     const nextOrbitTarget = new THREE.Vector3();
@@ -95,12 +99,12 @@ export const createViewerEngine = ({
         mode = nextMode;
         const isOrbit = mode === modeEnum.ORBIT;
         if (!isOrbit && cameraTween?.kind === 'preset') {
-            // Dropping into walk should not continue a long camera tween.
+            // Dropping into free-move modes should not continue a long camera tween.
             cameraTween = null;
         }
         controls.enabled = isOrbit;
         if (isOrbit) {
-            if (prevMode === modeEnum.WALK) {
+            if (prevMode === modeEnum.WALK || prevMode === modeEnum.FLY) {
                 camera.getWorldDirection(targetForward);
                 const currentDistance = camera.position.distanceTo(controls.target);
                 const minDistance = Math.max(1.2, controls.minDistance || 1.2);
@@ -179,28 +183,84 @@ export const createViewerEngine = ({
         }
     };
 
-    const updateWalk = (deltaTime, {
+    const fallbackMovementStep = (deltaTime, {
         moveKeys,
         getBaseSpeed,
         walkHeightEnabled,
+        movementKeyCodes,
         onWalkHeightSync
     } = {}) => {
-        if (mode !== modeEnum.WALK) return;
+        if (mode !== modeEnum.WALK && mode !== modeEnum.FLY) return { moved: false, hasIntent: false };
         const baseSpeed = typeof getBaseSpeed === 'function' ? getBaseSpeed() : 2;
         const boost = moveKeys.has('ShiftLeft') || moveKeys.has('ShiftRight') ? 3 : 1;
         const step = baseSpeed * boost * deltaTime;
+        const hasIntent = moveKeys instanceof Set
+            ? [...moveKeys].some((key) => movementKeyCodes?.has?.(key))
+            : false;
+        let moved = false;
 
-        if (moveKeys.has('KeyW')) pointerLockControl.moveForward(step);
-        if (moveKeys.has('KeyS')) pointerLockControl.moveForward(-step);
-        if (moveKeys.has('KeyA')) pointerLockControl.moveRight(-step);
-        if (moveKeys.has('KeyD')) pointerLockControl.moveRight(step);
-        if (moveKeys.has('KeyE')) camera.position.addScaledVector(camera.up, step);
-        if (moveKeys.has('KeyQ')) camera.position.addScaledVector(camera.up, -step);
-        if (moveKeys.has('Space')) camera.position.addScaledVector(camera.up, step);
-        if (moveKeys.has('KeyC')) camera.position.addScaledVector(camera.up, -step);
+        if (mode === modeEnum.WALK) {
+            if (moveKeys.has('KeyW')) { pointerLockControl.moveForward(step); moved = true; }
+            if (moveKeys.has('KeyS')) { pointerLockControl.moveForward(-step); moved = true; }
+            if (moveKeys.has('KeyA')) { pointerLockControl.moveRight(-step); moved = true; }
+            if (moveKeys.has('KeyD')) { pointerLockControl.moveRight(step); moved = true; }
+        } else if (mode === modeEnum.FLY) {
+            const { forward, right, up } = resolveFlyMovementBasis({
+                THREE,
+                camera
+            });
+            if (moveKeys.has('KeyW')) { camera.position.addScaledVector(forward, step); moved = true; }
+            if (moveKeys.has('KeyS')) { camera.position.addScaledVector(forward, -step); moved = true; }
+            if (moveKeys.has('KeyA')) { camera.position.addScaledVector(right, -step); moved = true; }
+            if (moveKeys.has('KeyD')) { camera.position.addScaledVector(right, step); moved = true; }
+            if (moveKeys.has('KeyE')) { camera.position.addScaledVector(up, step); moved = true; }
+            if (moveKeys.has('KeyQ')) { camera.position.addScaledVector(up, -step); moved = true; }
+            if (moveKeys.has('Space')) { camera.position.addScaledVector(up, step); moved = true; }
+            if (moveKeys.has('KeyC')) { camera.position.addScaledVector(up, -step); moved = true; }
+        }
         if (walkHeightEnabled && typeof onWalkHeightSync === 'function') {
             onWalkHeightSync(camera.position.y);
         }
+        return { moved, hasIntent };
+    };
+
+    const updateMovement = (deltaTime, {
+        moveKeys,
+        getBaseSpeed,
+        walkHeightEnabled,
+        movementKeyCodes,
+        onWalkHeightSync,
+        collisionContext
+    } = {}) => {
+        if (mode !== modeEnum.WALK && mode !== modeEnum.FLY) return { moved: false, hasIntent: false };
+        if (typeof movementResolver === 'function') {
+            return movementResolver({
+                THREE,
+                mode,
+                deltaTime,
+                camera,
+                pointerLockControl,
+                moveKeys,
+                movementKeyCodes,
+                getBaseSpeed,
+                walkHeightEnabled,
+                onWalkHeightSync,
+                collisionContext
+            }) || { moved: false, hasIntent: false };
+        }
+        return fallbackMovementStep(deltaTime, {
+            moveKeys,
+            getBaseSpeed,
+            walkHeightEnabled,
+            movementKeyCodes,
+            onWalkHeightSync,
+            collisionContext
+        });
+    };
+
+    const updateWalk = (deltaTime, opts = {}) => {
+        if (mode !== modeEnum.WALK) return { moved: false, hasIntent: false };
+        return updateMovement(deltaTime, opts);
     };
 
     const resize = (width, height) => {
@@ -215,10 +275,13 @@ export const createViewerEngine = ({
         lccUpdate = true,
         threeRender = true,
         moveKeys,
+        movementKeyCodes,
         getBaseSpeed,
         walkHeightEnabled,
-        onWalkHeightSync
+        onWalkHeightSync,
+        collisionContext
     } = {}) => {
+        const positionAtFrameStart = camera.position.clone();
         fpsSampleFrames += 1;
         fpsSampleTime += delta;
         if (fpsSampleTime >= 0.5) {
@@ -228,9 +291,34 @@ export const createViewerEngine = ({
             notifyFps();
         }
         updateAutoRenderScale(delta);
-        updateWalk(delta, { moveKeys, getBaseSpeed, walkHeightEnabled, onWalkHeightSync });
+        updateMovement(delta, {
+            moveKeys,
+            movementKeyCodes,
+            getBaseSpeed,
+            walkHeightEnabled,
+            onWalkHeightSync,
+            collisionContext
+        });
         updateCameraTween(now);
         if (mode === modeEnum.ORBIT) controls.update();
+        const movedThisFrame = camera.position.distanceToSquared(positionAtFrameStart) > 0.00000001;
+        if (typeof frameCollisionResolver === 'function') {
+            const collisionResult = frameCollisionResolver({
+                THREE,
+                mode,
+                movedThisFrame,
+                camera,
+                controls,
+                collisionContext
+            });
+            if (
+                collisionResult?.corrected
+                && walkHeightEnabled
+                && typeof onWalkHeightSync === 'function'
+            ) {
+                onWalkHeightSync(camera.position.y);
+            }
+        }
         if (lccUpdate) LCCRender.update();
         if (threeRender) renderer.render(scene, camera);
     };
@@ -245,6 +333,7 @@ export const createViewerEngine = ({
         applyRendererResolution,
         setCameraTween,
         updateCameraTween,
+        updateMovement,
         updateWalk,
         getRuntimeSnapshot
     };

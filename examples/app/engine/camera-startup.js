@@ -1,3 +1,5 @@
+import { computeAdaptiveNearPlane, VIOS_NAV_FEEL_TUNING } from '../navigation/navigation-feel-config.js';
+
 export const fitCameraToBoundsState = ({
     THREE,
     bounds,
@@ -25,8 +27,8 @@ export const fitCameraToBoundsState = ({
     controls.maxDistance = radius * 8;
 
     camera.position.copy(center).addScaledVector(fitDirection, radius * 2.2);
-    camera.near = Math.max(0.01, radius / 200);
-    camera.far = radius * 50;
+    camera.near = computeAdaptiveNearPlane(radius);
+    camera.far = radius * VIOS_NAV_FEEL_TUNING.camera.fitFarMultiplier;
     camera.updateProjectionMatrix();
     camera.lookAt(center);
     controls.update();

@@ -2,6 +2,7 @@ export const DEFAULT_MODEL_ENTRY_URL = '/assets/PentHouse/meta.lcc';
 export const DEFAULT_FOV = 45;
 export const DEFAULT_MODELS_REGISTRY_URL = '/tours/models.registry.json';
 export const DEFAULT_TOURS_REGISTRY_URL = '/tours/tours.registry.json';
+import { VIOS_NAV_FEEL_TUNING } from '../navigation/navigation-feel-config.js';
 
 const defaultLocationOrigin = () => {
     if (typeof location !== 'undefined' && location.origin) return location.origin;
@@ -50,6 +51,75 @@ export const parseVec3Array = (arr) => (
     arr.length === 3 &&
     arr.every((v) => Number.isFinite(Number(v)))
 ) ? [Number(arr[0]), Number(arr[1]), Number(arr[2])] : null;
+
+export const DEFAULT_COLLISION_MODE_PROFILE = Object.freeze({
+    orbit: false,
+    walk: true,
+    fly: false
+});
+
+const cloneCollisionModeProfile = (input = DEFAULT_COLLISION_MODE_PROFILE) => ({
+    orbit: input.orbit === true,
+    walk: input.walk === true,
+    fly: input.fly === true
+});
+
+export const createDefaultCollisionProfiles = () => ({
+    viewerModes: cloneCollisionModeProfile(DEFAULT_COLLISION_MODE_PROFILE),
+    editorModes: cloneCollisionModeProfile(DEFAULT_COLLISION_MODE_PROFILE)
+});
+
+const normalizeBooleanMode = (value, fallback) => {
+    if (value === true) return true;
+    if (value === false) return false;
+    return fallback === true;
+};
+
+export const normalizeCollisionModeProfile = (
+    input = {},
+    {
+        fallback = DEFAULT_COLLISION_MODE_PROFILE,
+        legacyEditorEnabled = false
+    } = {}
+) => {
+    const source = input && typeof input === 'object' ? input : {};
+    const normalized = {
+        orbit: normalizeBooleanMode(source.orbit, fallback.orbit),
+        walk: normalizeBooleanMode(source.walk, fallback.walk),
+        fly: normalizeBooleanMode(source.fly, fallback.fly)
+    };
+    if (legacyEditorEnabled && source.walk === undefined && source.editorEnabled === true) {
+        normalized.walk = true;
+    }
+    return normalized;
+};
+
+export const normalizeTourCollisionConfig = (input = {}) => {
+    const source = input && typeof input === 'object' ? input : {};
+    const defaults = createDefaultCollisionProfiles();
+    const sharedModes = source.modes && typeof source.modes === 'object' ? source.modes : null;
+    const hasExplicitProfiles = !!(
+        source.viewerModes
+        || source.editorModes
+        || source.viewer
+        || source.editor
+    );
+    const viewerSource = hasExplicitProfiles
+        ? (source.viewerModes || source.viewer || sharedModes || {})
+        : (sharedModes || {});
+    const editorSource = hasExplicitProfiles
+        ? (source.editorModes || source.editor || sharedModes || {})
+        : source;
+    return {
+        viewerModes: normalizeCollisionModeProfile(viewerSource, {
+            fallback: defaults.viewerModes
+        }),
+        editorModes: normalizeCollisionModeProfile(editorSource, {
+            fallback: defaults.editorModes,
+            legacyEditorEnabled: true
+        })
+    };
+};
 
 const normalizeTextValue = (value) => {
     if (value === null || value === undefined) return '';
@@ -289,7 +359,7 @@ export const createDefaultTourConfig = ({
         modelEntryUrl: defaultModelEntryUrl,
         rotation: resolveRotationDeg({ tourRotation: defaultRotation }),
         fov: defaultFov,
-        startMode: 'orbit',
+        startMode: VIOS_NAV_FEEL_TUNING.startup.defaultMode,
         cta: { label: 'CTA' }
     };
     if (isNonEmptyString(defaultModelId)) next.modelId = String(defaultModelId).trim();
@@ -384,7 +454,10 @@ export const normalizeRuntimeTourConfig = ({
     const configFov = parseNum(tourConfig.fov);
     const queryFov = parseNum(searchParams.get('fov'));
     const initialFov = queryFov !== null ? queryFov : (configFov !== null ? configFov : defaultFov);
-    const startModeConfig = tourConfig.startMode === 'walk' ? 'walk' : 'orbit';
+    // Startup defaults to walk for both viewer and editor runtimes.
+    // Legacy startMode values are tolerated on load, but walk-first is the default.
+    const startModeConfig = VIOS_NAV_FEEL_TUNING.startup.defaultMode;
+    const collisionConfig = normalizeTourCollisionConfig(tourConfig?.navigation?.collision);
     const ctaLabel = isNonEmptyString(tourConfig.cta?.label) ? tourConfig.cta.label.trim() : 'CTA';
     const ctaUrl = isNonEmptyString(tourConfig.cta?.url) ? tourConfig.cta.url.trim() : '';
     const propertyConfig = tourConfig.property && typeof tourConfig.property === 'object'
@@ -483,6 +556,7 @@ export const normalizeRuntimeTourConfig = ({
         queryFov,
         initialFov,
         startModeConfig,
+        collisionConfig,
         ctaLabel,
         ctaUrl,
         propertyCard,
