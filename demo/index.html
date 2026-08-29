@@ -463,12 +463,12 @@ window.Icon = function(name, size, cls){
 // people, courses, or credentials. "Today" anchors around 2026-09 (fall term).
 window.DATA = (function () {
   const student = {
-    name: "Alex Morgan",
-    first: "Alex",
-    email: "amorgan@riverside.edu",
+    name: "Mohammed Mekkey",
+    first: "Mohammed",
+    email: "106052515@student.swin.edu.au",
     initials: "AM",
     avatarColor: "#0E68B3",
-    institution: "Riverside University",
+    institution: "    Swinburne University of Technology ",
   };
 
   // InstUI course-card swatches (exact primitives)
@@ -610,7 +610,7 @@ window.Screens.login = {
         <form class="login__card" onsubmit="App.login();return false;">
           <div class="login__logo">${Icon("canvasLogo", 38)}</div>
           <div class="login__inst">${inst}</div>
-          <div class="login__demo">Demo portal · no real login — any details take you in</div>
+          <div class="login__demo">-</div>
           <div class="field">
             <label class="field__label" for="lg-user">Email</label>
             <input class="input" id="lg-user" type="text" inputmode="email"
@@ -624,7 +624,7 @@ window.Screens.login = {
           <a class="login__forgot" href="javascript:void(0)" onclick="App.login()">Forgot Password?</a>
         </form>
         <div class="login__footer">
-          INSTRUCTURE — Demo replica for a UI exercise.<br/>Not affiliated with Instructure, Inc.
+          .
         </div>
       </div>`;
   },
